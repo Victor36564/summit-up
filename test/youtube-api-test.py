@@ -60,7 +60,7 @@ def parse_iso8601_duration(duration: str) -> float:
 
 
 def get_youtube_shorts_with_orientation(
-	api_key: str, query: str, max_shorts_limit: int = 5
+	api_key: str, query: str, max_shorts_limit: int = 5, max_results: int = 30
 ) -> list[dict[str, Any]]:
 	"""Find videos that are at most 60 seconds long and portrait-oriented."""
 	shorts_found: list[dict[str, Any]] = []
@@ -73,7 +73,7 @@ def get_youtube_shorts_with_orientation(
 			"q": query,
 			"type": "video",
 			"videoDuration": "short",
-			"maxResults": 50,
+			"maxResults": max_results,
 			"order": "relevance",
 		}
 		if next_page_token:
@@ -98,6 +98,7 @@ def get_youtube_shorts_with_orientation(
 				"maxWidth": 1920,
 			},
 		)
+		# print(video_response)
 
 		for video in video_response.get("items", []):
 			content_details = video.get("contentDetails", {})
@@ -112,15 +113,20 @@ def get_youtube_shorts_with_orientation(
 			if duration_seconds > 60 or height <= width or not height:
 				continue
 
-			shorts_found.append(
-				{
-					"video_id": video["id"],
-					"title": video.get("snippet", {}).get("title", ""),
-					"duration_sec": duration_seconds,
-					"dimensions": f"{width}x{height}",
-					"url": f"https://www.youtube.com/shorts/{video['id']}",
-				}
-			)
+			description = video.get("snippet", {}).get("description", "")
+
+			if description:
+				shorts_found.append(
+					{
+						"video_id": video["id"],
+						"title": video.get("snippet", {}).get("title", ""),
+						"duration_sec": duration_seconds,
+						"dimensions": f"{width}x{height}",
+						"tags": video.get("snippet", {}).get("tags", []),
+						"description": description,
+						"url": f"https://www.youtube.com/shorts/{video['id']}",
+					}
+				)
 			if len(shorts_found) >= max_shorts_limit:
 				break
 
@@ -130,6 +136,43 @@ def get_youtube_shorts_with_orientation(
 
 	return shorts_found[:max_shorts_limit]
 
+import re
+
+def extract_hikes_master(text: str) -> list[str]:
+    hikes = []
+    
+    for line in text.strip().splitlines():
+        line = line.strip()
+        if not line:
+            continue
+            
+        # 1. Match Numbered Lists AND Fractions (e.g., "1. Sealy Tarns" OR "2/4 — Queenstown Hill")
+        # Added (?:\d+/\d+|\d+) to handle fractions like "2/4"
+        # Added \s*[-–—]*\s* to handle dashes after the number
+        num_match = re.match(r"^(?:\d+/\d+|\d+)[.)]?\s*[-–—]*\s*([A-Z][A-Za-z0-9\s'’]+?)(?:\s*[(:\-–—]|(?:$))", line)
+        if num_match:
+            hikes.append(num_match.group(1).strip())
+            continue
+            
+        # 2. Match Bulleted Lists WITH a separator 
+        # (e.g., "- Tongariro Alpine Crossing - Tongariro National Park")
+        bul_match = re.match(r"^[-•]\s+([A-Z][A-Za-z0-9\s'’]+?)\s+[-–—:|]\s+", line)
+        if bul_match:
+            hikes.append(bul_match.group(1).strip())
+
+    # 3. Prose fallback
+    # Only runs if no lists were detected above
+    if not hikes:
+        # Added "Hill" to the list of keywords
+        trail_keywords = r"(Track|Trail|Crossing|Walk|Pass|Hut|Hike|Route|Peak|Summit|Tarns|Falls|Glacier|Saddle|Hill)"
+        
+        prose_pattern = re.compile(
+            rf"\b([A-Z][A-Za-z'’]+(?:\s+[A-Z][A-Za-z'’]+)*\s+{trail_keywords})\b"
+        )
+        matches = [m[0] for m in prose_pattern.findall(text)]
+        hikes = list(dict.fromkeys(matches))
+
+    return hikes
 
 def parse_args() -> argparse.Namespace:
 	parser = argparse.ArgumentParser(description=__doc__)
@@ -146,8 +189,8 @@ def parse_args() -> argparse.Namespace:
 	parser.add_argument(
 		"--max-results",
 		type=int,
-		default=25,
-		help="Number of portrait Shorts to retrieve (default: 25)",
+		default=30,
+		help="Number of portrait Shorts to retrieve (default: 30)",
 	)
 	parser.add_argument(
 		"--output",
@@ -178,11 +221,17 @@ def main() -> int:
 			json.dump(videos, output_file, indent=2, ensure_ascii=False)
 			output_file.write("\n")
 
-	for number, video in enumerate(videos, start=1):
-		print(
-			f"{number}. {video['title']} | "
-			f"{video['duration_sec']:.1f}s | {video['dimensions']} | {video['url']}"
-		)
+	number = 1
+	for video in videos:
+		if len(extract_hikes_master(video['description'])) > 0:
+			print(
+				f"{number}. {video['title']} | "
+				# f"{video['description']} | "
+				f"{video['tags']} | "
+				f"{video['duration_sec']:.1f}s | {video['dimensions']} | {video['url']} | "
+				f"{extract_hikes_master(video['description'])}\n\n"
+			)
+			number += 1
 	print(f"\nFound {len(videos)} portrait Shorts for: {args.query}")
 	return 0
 
