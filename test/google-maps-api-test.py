@@ -38,14 +38,6 @@ def search_hikes_in_auckland() -> list[dict[str, str | None]]:
         for place in data.get("places", [])
     ]
 
-import os
-import requests
-from dotenv import load_dotenv
-
-load_dotenv()
-
-API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
-
 
 def get_place_details_with_reviews(place_id: str) -> dict:
     url = f"https://places.googleapis.com/v1/places/{place_id}"
@@ -63,7 +55,7 @@ def get_place_details_with_reviews(place_id: str) -> dict:
 
     headers = {
         "Content-Type": "application/json",
-        "X-Goog-Api-Key": API_KEY,
+        "X-Goog-Api-Key": os.getenv("GOOGLE_MAPS_API_KEY"),
         "X-Goog-FieldMask": ",".join(field_mask),
     }
 
