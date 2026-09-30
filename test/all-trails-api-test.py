@@ -14,11 +14,6 @@ if __name__ == "__main__":
         "query": "Lake Daniells Track",
         "country": "new-zealand",                  # Forces the search scope to the US index
         "fetchTrailDetails": True,         # CRITICAL: Pulls length and elevation gain fields
-        
-        "proxyConfiguration": {
-            "useApifyProxy": True,
-            "apifyProxyGroups": ["RESIDENTIAL"]
-        }
     }
     
     print("Running scraper... please wait (this takes a moment to bypass blocks).")
