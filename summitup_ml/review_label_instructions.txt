@@ -1,0 +1,13 @@
+For each review, retain the original text, source URL, posting date, and actual trip date when explicitly available.
+Labels are 1 = explicitly present/positive, 0 = explicitly absent/negative, blank = unknown.
+Never turn lack of mention into absence. Never use weather to manufacture a review label.
+overall_good means favorable reported hiking conditions, not scenery or a star rating alone.
+scenic_positive means the reviewer explicitly enjoyed the scenery. A hike can be beautiful AND muddy.
+crowded means crowding experienced; zero requires explicit quiet/uncrowded wording.
+trail_quality_good means explicit surface/maintenance quality, not general enjoyment.
+For each assigned label, put target: exact supporting quote in evidence_quote.
+The review must refer to the actual route. Google attraction reviews require route matching.
+Verify actual_trip_date only when supported; the posting date is an imperfect proxy.
+Set manually_reviewed=1 only after checking the original source and all labels. A model proposal alone is not manual curation.
+For catalog features, verify the current route matches the feature evidence before setting features_reviewed=1.
+Any newly collected examples from 2026 onward should be held out as a new final test until the model is fixed.

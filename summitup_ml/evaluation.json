@@ -1,0 +1,366 @@
+{
+  "overall_good": {
+    "label_meaning": "explicit reviewer report, conditional on reporting; not objective trip probability",
+    "counts": {
+      "train": {
+        "rows": 898,
+        "positive": 885,
+        "negative": 13,
+        "routes": 325
+      },
+      "validation": {
+        "rows": 1199,
+        "positive": 1180,
+        "negative": 19,
+        "routes": 370
+      },
+      "test": {
+        "rows": 30,
+        "positive": 29,
+        "negative": 1,
+        "routes": 11
+      }
+    },
+    "status": "experimental",
+    "calibrated": true,
+    "candidate_validation": {
+      "logistic": {
+        "rows": 1199,
+        "positive": 1180,
+        "negative": 19,
+        "balanced_accuracy": 0.5335637823371989,
+        "roc_auc": 0.5465209634255129,
+        "brier": 0.05602789035088415
+      },
+      "random_forest": {
+        "rows": 1199,
+        "positive": 1180,
+        "negative": 19,
+        "balanced_accuracy": 0.5,
+        "roc_auc": 0.5672836752899197,
+        "brier": 0.029471414720049386
+      }
+    },
+    "selected_model": "logistic",
+    "calibration_note": "Sigmoid fitted to validation report labels; population trip probability remains unvalidated.",
+    "temporal_test": {
+      "rows": 30,
+      "positive": 29,
+      "negative": 1,
+      "balanced_accuracy": 0.5,
+      "roc_auc": 0.4482758620689655,
+      "brier": 0.032589775834555024
+    },
+    "seasonal_baseline": {
+      "rows": 30,
+      "positive": 29,
+      "negative": 1,
+      "balanced_accuracy": 0.5,
+      "roc_auc": 0.2931034482758621,
+      "brier": 0.03302036822910614
+    },
+    "unseen_route_cv": {
+      "rows": 898,
+      "positive": 885,
+      "negative": 13,
+      "balanced_accuracy": 0.6053455019556715,
+      "roc_auc": 0.67909604519774,
+      "brier": 0.16397696429143166
+    },
+    "passes_exploratory_gate": false,
+    "production_validated": false,
+    "limitations": [
+      "selective reporting",
+      "posting dates used",
+      "regional climate proxies",
+      "legacy labels not team verified",
+      "ranking relevance not evaluated"
+    ]
+  },
+  "bugs": {
+    "label_meaning": "explicit reviewer report, conditional on reporting; not objective trip probability",
+    "counts": {
+      "train": {
+        "rows": 63,
+        "positive": 41,
+        "negative": 22,
+        "routes": 58
+      },
+      "validation": {
+        "rows": 118,
+        "positive": 55,
+        "negative": 63,
+        "routes": 87
+      },
+      "test": {
+        "rows": 4,
+        "positive": 3,
+        "negative": 1,
+        "routes": 3
+      }
+    },
+    "status": "experimental",
+    "calibrated": true,
+    "candidate_validation": {
+      "logistic": {
+        "rows": 118,
+        "positive": 55,
+        "negative": 63,
+        "balanced_accuracy": 0.5,
+        "roc_auc": 0.5828282828282828,
+        "brier": 0.3691381351382905
+      },
+      "random_forest": {
+        "rows": 118,
+        "positive": 55,
+        "negative": 63,
+        "balanced_accuracy": 0.5157287157287157,
+        "roc_auc": 0.6275613275613275,
+        "brier": 0.25132379841209207
+      }
+    },
+    "selected_model": "random_forest",
+    "calibration_note": "Sigmoid fitted to validation report labels; population trip probability remains unvalidated.",
+    "temporal_test": {
+      "rows": 4,
+      "positive": 3,
+      "negative": 1,
+      "balanced_accuracy": 0.6666666666666666,
+      "roc_auc": 0.3333333333333333,
+      "brier": 0.29975928344279884
+    },
+    "seasonal_baseline": {
+      "rows": 4,
+      "positive": 3,
+      "negative": 1,
+      "balanced_accuracy": 0.5,
+      "roc_auc": 0.6666666666666666,
+      "brier": 0.18929341283838638
+    },
+    "unseen_route_cv": {
+      "rows": 63,
+      "positive": 41,
+      "negative": 22,
+      "balanced_accuracy": 0.6596452328159645,
+      "roc_auc": 0.7283813747228381,
+      "brier": 0.21663295318004558
+    },
+    "passes_exploratory_gate": false,
+    "production_validated": false,
+    "limitations": [
+      "selective reporting",
+      "posting dates used",
+      "regional climate proxies",
+      "legacy labels not team verified",
+      "ranking relevance not evaluated"
+    ]
+  },
+  "mud": {
+    "label_meaning": "explicit reviewer report, conditional on reporting; not objective trip probability",
+    "counts": {
+      "train": {
+        "rows": 168,
+        "positive": 158,
+        "negative": 10,
+        "routes": 114
+      },
+      "validation": {
+        "rows": 117,
+        "positive": 115,
+        "negative": 2,
+        "routes": 80
+      },
+      "test": {
+        "rows": 6,
+        "positive": 6,
+        "negative": 0,
+        "routes": 6
+      }
+    },
+    "status": "experimental",
+    "calibrated": false,
+    "candidate_validation": {
+      "logistic": {
+        "rows": 117,
+        "positive": 115,
+        "negative": 2,
+        "balanced_accuracy": 0.40869565217391307,
+        "roc_auc": 0.4956521739130435,
+        "brier": 0.1829275670070547
+      },
+      "random_forest": {
+        "rows": 117,
+        "positive": 115,
+        "negative": 2,
+        "balanced_accuracy": 0.5,
+        "roc_auc": 0.7347826086956522,
+        "brier": 0.060457717100226516
+      }
+    },
+    "selected_model": "random_forest",
+    "calibration_note": "Sigmoid fitted to validation report labels; population trip probability remains unvalidated.",
+    "temporal_test": {
+      "rows": 6,
+      "positive": 6,
+      "negative": 0,
+      "balanced_accuracy": null,
+      "roc_auc": null,
+      "brier": 0.04282180280710152
+    },
+    "seasonal_baseline": {
+      "rows": 6,
+      "positive": 6,
+      "negative": 0,
+      "balanced_accuracy": null,
+      "roc_auc": null,
+      "brier": 0.0029772424478412916
+    },
+    "unseen_route_cv": {
+      "rows": 168,
+      "positive": 158,
+      "negative": 10,
+      "balanced_accuracy": 0.5468354430379747,
+      "roc_auc": 0.5468354430379747,
+      "brier": 0.09896010811116102
+    },
+    "passes_exploratory_gate": false,
+    "production_validated": false,
+    "limitations": [
+      "selective reporting",
+      "posting dates used",
+      "regional climate proxies",
+      "legacy labels not team verified",
+      "ranking relevance not evaluated"
+    ]
+  },
+  "snow": {
+    "label_meaning": "explicit reviewer report, conditional on reporting; not objective trip probability",
+    "counts": {
+      "train": {
+        "rows": 18,
+        "positive": 14,
+        "negative": 4,
+        "routes": 12
+      },
+      "validation": {
+        "rows": 8,
+        "positive": 6,
+        "negative": 2,
+        "routes": 8
+      },
+      "test": {
+        "rows": 0,
+        "positive": 0,
+        "negative": 0,
+        "routes": 0
+      }
+    },
+    "status": "withheld",
+    "calibrated": false,
+    "reason": "Insufficient training examples of both classes (minimum 8 each)."
+  },
+  "ice": {
+    "label_meaning": "explicit reviewer report, conditional on reporting; not objective trip probability",
+    "counts": {
+      "train": {
+        "rows": 14,
+        "positive": 13,
+        "negative": 1,
+        "routes": 12
+      },
+      "validation": {
+        "rows": 6,
+        "positive": 6,
+        "negative": 0,
+        "routes": 6
+      },
+      "test": {
+        "rows": 2,
+        "positive": 2,
+        "negative": 0,
+        "routes": 2
+      }
+    },
+    "status": "withheld",
+    "calibrated": false,
+    "reason": "Insufficient training examples of both classes (minimum 8 each)."
+  },
+  "scenic_positive": {
+    "label_meaning": "explicit reviewer report, conditional on reporting; not objective trip probability",
+    "counts": {
+      "train": {
+        "rows": 0,
+        "positive": 0,
+        "negative": 0,
+        "routes": 0
+      },
+      "validation": {
+        "rows": 0,
+        "positive": 0,
+        "negative": 0,
+        "routes": 0
+      },
+      "test": {
+        "rows": 0,
+        "positive": 0,
+        "negative": 0,
+        "routes": 0
+      }
+    },
+    "status": "withheld",
+    "calibrated": false,
+    "reason": "Insufficient training examples of both classes (minimum 8 each)."
+  },
+  "crowded": {
+    "label_meaning": "explicit reviewer report, conditional on reporting; not objective trip probability",
+    "counts": {
+      "train": {
+        "rows": 0,
+        "positive": 0,
+        "negative": 0,
+        "routes": 0
+      },
+      "validation": {
+        "rows": 0,
+        "positive": 0,
+        "negative": 0,
+        "routes": 0
+      },
+      "test": {
+        "rows": 0,
+        "positive": 0,
+        "negative": 0,
+        "routes": 0
+      }
+    },
+    "status": "withheld",
+    "calibrated": false,
+    "reason": "Insufficient training examples of both classes (minimum 8 each)."
+  },
+  "trail_quality_good": {
+    "label_meaning": "explicit reviewer report, conditional on reporting; not objective trip probability",
+    "counts": {
+      "train": {
+        "rows": 0,
+        "positive": 0,
+        "negative": 0,
+        "routes": 0
+      },
+      "validation": {
+        "rows": 0,
+        "positive": 0,
+        "negative": 0,
+        "routes": 0
+      },
+      "test": {
+        "rows": 0,
+        "positive": 0,
+        "negative": 0,
+        "routes": 0
+      }
+    },
+    "status": "withheld",
+    "calibrated": false,
+    "reason": "Insufficient training examples of both classes (minimum 8 each)."
+  }
+}

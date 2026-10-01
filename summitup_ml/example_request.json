@@ -1,0 +1,12 @@
+{
+  "travel_date": "2027-01-15",
+  "as_of": "2026-10-01",
+  "region": "Otago",
+  "max_distance_km": 10,
+  "max_elevation_gain_m": 700,
+  "preferences_text": "mountain views and a peaceful lake walk",
+  "desired_features": ["views", "lake"],
+  "condition_weights": {"overall_good": 1.0, "bugs": 0.8, "mud": 0.5},
+  "allow_experimental": true,
+  "top_k": 10
+}
