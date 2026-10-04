@@ -3,7 +3,31 @@ import { GoogleMap, LoadScript, MarkerF } from "@react-google-maps/api";
 import { Bookmark, ChevronDown, ChevronUp, CircleUserRound, Film, Info, Map as MapIcon, MapPin, MessageSquare, Search, Send, Share2, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "./api";
-import type { Details, Metrics, RecommendationOptions, RecommendationRequest, RecommendationResponse, RecommendationResult, SavedTrail, Trail, Video } from "./types";
+import type { Details, Metrics, Personalization, RecommendationOptions, RecommendationRequest, RecommendationResponse, RecommendationResult, SavedTrail, Trail, Video } from "./types";
+
+function getSaveIdentity(trail?: Partial<SavedTrail> | null): string | null {
+  if (trail && typeof trail.catalog_hike_id === "string" && trail.catalog_hike_id.trim()) return `catalog:${trail.catalog_hike_id}`;
+  if (trail && typeof trail.place_id === "string" && trail.place_id.trim()) return `google:${trail.place_id}`;
+  return null;
+}
+
+function hasSameSaveIdentity(left?: Partial<SavedTrail> | null, right?: Partial<SavedTrail> | Trail | null): boolean {
+  if (!left || !right) return false;
+  const leftIdentity = getSaveIdentity(left);
+  const rightIdentity = getSaveIdentity(right as Partial<SavedTrail>);
+  if (leftIdentity && rightIdentity) return leftIdentity === rightIdentity;
+  if (typeof (left as Partial<SavedTrail>).catalog_hike_id === "string" && typeof (right as { catalog_hike_id?: string | null }).catalog_hike_id === "string") {
+    return (left as Partial<SavedTrail>).catalog_hike_id === (right as { catalog_hike_id?: string | null }).catalog_hike_id;
+  }
+  if (typeof (left as Partial<SavedTrail>).place_id === "string" && typeof (right as { place_id?: string | null }).place_id === "string") {
+    return (left as Partial<SavedTrail>).place_id === (right as { place_id?: string | null }).place_id;
+  }
+  return false;
+}
+
+function getRecommendationPersonalization(response: RecommendationResponse | null): Personalization | undefined {
+  return (response as { personalization?: Personalization } | null)?.personalization ?? undefined;
+}
 
 const fallbackTrails: Trail[] = [
   { place_id: "fallback-tongariro", name: "Tongariro Alpine Crossing", address: "Tongariro National Park, New Zealand", latitude: -39.13, longitude: 175.64, rating: 4.8, user_rating_count: 1842 },
@@ -20,7 +44,7 @@ function App() {
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [resolvedVideoTrails, setResolvedVideoTrails] = useState<Record<string, Trail>>({});
   const [saved, setSaved] = useState<SavedTrail[]>([]);
-  const [selectedTrail, setSelectedTrail] = useState<Trail | null>(null);
+  const [selectedTrail, setSelectedTrail] = useState<Trail | SavedTrail | null>(null);
   const [details, setDetails] = useState<Details | null>(null);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -30,6 +54,8 @@ function App() {
   const [recommendationResponse, setRecommendationResponse] = useState<RecommendationResponse | null>(null);
   const [recommendationLoading, setRecommendationLoading] = useState(false);
   const [recommendationError, setRecommendationError] = useState("");
+  const lastRecommendationRequestRef = useRef<RecommendationRequest | null>(null);
+  const recommendationRequestIdRef = useRef(0);
   const page = location.pathname === "/map" ? "map" : location.pathname === "/profile" ? "profile" : "feed";
   const wheelLock = useRef(0);
 
@@ -79,12 +105,36 @@ function App() {
     } finally { setLoading(false); }
   }
 
-  async function openTrail(trail: Trail) {
+  async function openTrail(trail: Trail | SavedTrail) {
     setSelectedTrail(trail);
     setDrawerOpen(true);
     setDetails(null);
     setMetrics(null);
     try {
+      if (!trail.place_id) {
+        const response = await api.search(trail.name);
+        const verifiedTrail = response.items.find((candidate) => candidate.name.toLowerCase() === trail.name.toLowerCase()) ?? response.items[0] ?? null;
+        if (!verifiedTrail) {
+          setNotice(`Google Places could not verify ${trail.name}.`);
+          return;
+        }
+        const preservedTrail: SavedTrail = {
+          ...trail,
+          ...verifiedTrail,
+          name: verifiedTrail.name || trail.name,
+          address: verifiedTrail.address ?? trail.address ?? null,
+          latitude: verifiedTrail.latitude ?? trail.latitude ?? null,
+          longitude: verifiedTrail.longitude ?? trail.longitude ?? null,
+          rating: verifiedTrail.rating ?? trail.rating ?? null,
+          user_rating_count: verifiedTrail.user_rating_count ?? trail.user_rating_count ?? null,
+          place_id: verifiedTrail.place_id ?? trail.place_id ?? null,
+        };
+        setSelectedTrail(preservedTrail);
+        const [placeDetails, trailMetrics] = await Promise.all([api.details(verifiedTrail.place_id as string), api.metrics(verifiedTrail.name)]);
+        setDetails(placeDetails);
+        setMetrics(trailMetrics);
+        return;
+      }
       const [placeDetails, trailMetrics] = await Promise.all([api.details(trail.place_id), api.metrics(trail.name)]);
       setDetails(placeDetails);
       setMetrics(trailMetrics);
@@ -122,20 +172,35 @@ function App() {
     }
   }
 
-  async function toggleSave(trail: Trail) {
-    const isSaved = saved.some((item) => item.place_id === trail.place_id);
+  async function toggleSave(trail: Trail | SavedTrail) {
+    const isSaved = saved.some((item) => hasSameSaveIdentity(item, trail));
     try {
       const result = await api.toggleSaved(trail, !isSaved);
-      setSaved((current) => result.saved ? [...current.filter((item) => item.place_id !== trail.place_id), result.trail] : current.filter((item) => item.place_id !== trail.place_id));
+      setSaved((current) => result.saved ? [...current.filter((item) => !hasSameSaveIdentity(item, trail)), result.trail] : current.filter((item) => !hasSameSaveIdentity(item, trail)));
+      if (lastRecommendationRequestRef.current) {
+        await recommendTrails(lastRecommendationRequestRef.current);
+      }
     } catch { setNotice("Saving is unavailable until the API is running."); }
   }
 
   async function recommendTrails(payload: RecommendationRequest) {
+    lastRecommendationRequestRef.current = payload;
+    const requestId = ++recommendationRequestIdRef.current;
     setRecommendationLoading(true);
     setRecommendationError("");
-    try { setRecommendationResponse(await api.recommendations(payload)); }
-    catch (error) { setRecommendationResponse(null); setRecommendationError(error instanceof Error ? error.message : "Recommendations are unavailable."); }
-    finally { setRecommendationLoading(false); }
+    try {
+      const nextResponse = await api.recommendations(payload);
+      if (requestId !== recommendationRequestIdRef.current) return;
+      setRecommendationResponse(nextResponse);
+    } catch (error) {
+      if (requestId !== recommendationRequestIdRef.current) return;
+      setRecommendationResponse(null);
+      setRecommendationError(error instanceof Error ? error.message : "Recommendations are unavailable.");
+    } finally {
+      if (requestId === recommendationRequestIdRef.current) {
+        setRecommendationLoading(false);
+      }
+    }
   }
 
   async function openRecommendation(result: RecommendationResult) {
@@ -149,17 +214,20 @@ function App() {
   async function saveRecommendation(result: RecommendationResult) {
     try {
       const savedResult = await api.toggleCatalogSaved({ catalog_hike_id: result.hike_id, name: result.name, metrics: { name: result.name, length_km: result.distance_km, elevation_gain_meters: result.elevation_gain_m, difficulty: result.difficulty, available: true } }, true);
-      setSaved((current) => [...current.filter((item) => item.catalog_hike_id !== result.hike_id), savedResult.trail]);
+      setSaved((current) => [...current.filter((item) => !hasSameSaveIdentity(item, { catalog_hike_id: result.hike_id } as Partial<SavedTrail>)), savedResult.trail]);
       setNotice(`${result.name} saved to your vault.`);
+      if (lastRecommendationRequestRef.current) {
+        await recommendTrails(lastRecommendationRequestRef.current);
+      }
     } catch { setNotice("Catalog saving is unavailable right now."); }
   }
 
   return <main className={`app-shell ${page}-page`}>
     {page === "feed" && <FeedView video={videos[activeVideoIndex]} trail={resolvedVideoTrails[videos[activeVideoIndex]?.video_id] ?? trails[activeVideoIndex % trails.length] ?? trails[0]} activeIndex={activeVideoIndex} videoCount={videos.length} onStep={stepVideo} onWheel={handleReelWheel} onInfo={() => openVideoTrail(videos[activeVideoIndex], resolvedVideoTrails[videos[activeVideoIndex]?.video_id] ?? trails[activeVideoIndex % trails.length] ?? trails[0])} onSave={() => toggleSave(resolvedVideoTrails[videos[activeVideoIndex]?.video_id] ?? trails[activeVideoIndex % trails.length] ?? trails[0])} saved={saved.some((item) => item.place_id === (resolvedVideoTrails[videos[activeVideoIndex]?.video_id] ?? trails[activeVideoIndex % trails.length] ?? trails[0])?.place_id)} onSearch={search} query={query} setQuery={setQuery} loading={loading} notice={notice} />}
     <div className={`map-view-shell ${page === "map" ? "is-active" : "is-hidden"}`}><MapView trails={trails} query={query} setQuery={setQuery} loading={loading} notice={notice} onSearch={search} onSelect={openTrail} recommendationOptions={recommendationOptions} recommendationResponse={recommendationResponse} recommendationLoading={recommendationLoading} recommendationError={recommendationError} onRecommend={recommendTrails} onOpenRecommendation={openRecommendation} onSaveRecommendation={saveRecommendation} /></div>
-    {page === "profile" && <ProfileView saved={saved} onSelect={openTrail} />}
+    {page === "profile" && <ProfileView saved={saved} onSelect={openTrail} onRemove={async (nextTrail) => { try { const result = await api.toggleSaved(nextTrail, false); setSaved((current) => current.filter((item) => !hasSameSaveIdentity(item, nextTrail))); if (lastRecommendationRequestRef.current) { await recommendTrails(lastRecommendationRequestRef.current); } if (result.saved === false) { setNotice(`${nextTrail.name} was removed from your vault.`); } } catch { setNotice("Removing this saved trail is unavailable right now."); } }} />}
     <BottomNav page={page} navigate={navigate} />
-    {drawerOpen && selectedTrail && <InfoDrawer trail={selectedTrail} details={details} metrics={metrics} saved={saved.some((item) => item.place_id === selectedTrail.place_id)} onClose={() => setDrawerOpen(false)} onSave={() => toggleSave(selectedTrail)} />}
+    {drawerOpen && selectedTrail && <InfoDrawer trail={selectedTrail} details={details} metrics={metrics} saved={saved.some((item) => hasSameSaveIdentity(item, selectedTrail))} onClose={() => setDrawerOpen(false)} onSave={() => toggleSave(selectedTrail)} />}
   </main>;
 }
 
@@ -179,7 +247,7 @@ function ActionButton({ icon, label, onClick, active = false }: { icon: ReactNod
 type MapBounds = { west: number; south: number; east: number; north: number };
 
 function getMapBounds(trails: Trail[]): MapBounds {
-  const searchedTrails = trails.filter((trail) => !trail.place_id.startsWith("fallback-") && trail.latitude != null && trail.longitude != null);
+  const searchedTrails = trails.filter((trail) => !(trail.place_id?.startsWith("fallback-") ?? false) && trail.latitude != null && trail.longitude != null);
   if (!searchedTrails.length) return { west: 166, south: -47, east: 179, north: -34 };
 
   const longitudes = searchedTrails.map((trail) => trail.longitude as number);
@@ -203,8 +271,8 @@ function MapView({ trails, query, setQuery, loading, notice, onSearch, onSelect,
   const openStreetMap = `https://www.openstreetmap.org/export/embed.html?bbox=${bounds.west}%2C${bounds.south}%2C${bounds.east}%2C${bounds.north}&layer=mapnik`;
   const mapPins = trails.filter((trail) => trail.latitude != null && trail.longitude != null).map((trail) => ({ trail, left: ((trail.longitude! - bounds.west) / (bounds.east - bounds.west)) * 100, top: ((bounds.north - trail.latitude!) / (bounds.north - bounds.south)) * 100 }));
   const center = trails.find((trail) => trail.latitude != null && trail.longitude != null) ?? fallbackTrails[0];
-  const map = <GoogleMap mapContainerClassName="google-map" center={{ lat: center.latitude as number, lng: center.longitude as number }} zoom={trails.some((trail) => !trail.place_id.startsWith("fallback-")) ? 10 : 5} options={{ disableDefaultUI: true }}>{trails.map((trail) => trail.latitude != null && trail.longitude != null ? <MarkerF key={trail.place_id} position={{ lat: trail.latitude, lng: trail.longitude }} onClick={() => onSelect(trail)} /> : null)}</GoogleMap>;
-  const fallbackMap = <div className="map-fallback"><iframe key={openStreetMap} title="New Zealand trail map" src={openStreetMap} /><div className="map-fallback-note">{mapError ? "Google Maps unavailable. Showing OpenStreetMap." : "OpenStreetMap trail map"}</div><div className="map-pins">{mapPins.map(({ trail, left, top }) => <button key={trail.place_id} className="map-pin" style={{ left: `${left}%`, top: `${top}%` }} onClick={() => onSelect(trail)} aria-label={`Open ${trail.name}`} title={trail.name}><MapPin size={24} fill="currentColor" /></button>)}</div></div>;
+  const map = <GoogleMap mapContainerClassName="google-map" center={{ lat: center.latitude as number, lng: center.longitude as number }} zoom={trails.some((trail) => !(trail.place_id?.startsWith("fallback-") ?? true)) ? 10 : 5} options={{ disableDefaultUI: true }}>{trails.map((trail) => trail.latitude != null && trail.longitude != null ? <MarkerF key={trail.place_id ?? trail.name} position={{ lat: trail.latitude, lng: trail.longitude }} onClick={() => onSelect(trail)} /> : null)}</GoogleMap>;
+  const fallbackMap = <div className="map-fallback"><iframe key={openStreetMap} title="New Zealand trail map" src={openStreetMap} /><div className="map-fallback-note">{mapError ? "Google Maps unavailable. Showing OpenStreetMap." : "OpenStreetMap trail map"}</div><div className="map-pins">{mapPins.map(({ trail, left, top }) => <button key={trail.place_id ?? trail.name} className="map-pin" style={{ left: `${left}%`, top: `${top}%` }} onClick={() => onSelect(trail)} aria-label={`Open ${trail.name}`} title={trail.name}><MapPin size={24} fill="currentColor" /></button>)}</div></div>;
   return <section className="map-stage"><div className="map-backdrop">{key && !mapError ? <LoadScript googleMapsApiKey={key} onError={() => setMapError(true)}>{map}</LoadScript> : fallbackMap}</div><div className="map-search"><Search size={18} /><input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSearch()} /><button onClick={() => onSearch()}>{loading ? "Searching..." : "Search"}</button></div><div className="map-label"><span className="eyebrow">LIVE EXPLORATION</span><h1>Trace the<br /><em>ridgeline.</em></h1></div><RecommendationPanel options={recommendationOptions} response={recommendationResponse} loading={recommendationLoading} error={recommendationError} onSubmit={onRecommend} onOpen={onOpenRecommendation} onSave={onSaveRecommendation} />{notice && <div className="toast map-toast">{notice}</div>}</section>;
 }
 
@@ -218,12 +286,40 @@ function RecommendationPanel({ options, response, loading, error, onSubmit, onOp
   const [time, setTime] = useState("");
   const [features, setFeatures] = useState<string[]>([]);
   const [conditionWeights, setConditionWeights] = useState({ overall_good: "1", bugs: "0.8", mud: "0.5" });
-  const submit = () => onSubmit({ travel_date: travelDate, ...(region ? { region } : {}), ...(difficulty ? { difficulty } : {}), ...(distance ? { max_distance_km: Number(distance) } : {}), ...(elevation ? { max_elevation_gain_m: Number(elevation) } : {}), ...(time ? { max_time_hours: Number(time) } : {}), preferences_text: preferences, desired_features: features, condition_weights: Object.fromEntries(Object.entries(conditionWeights).map(([key, value]) => [key, Number(value)])), allow_experimental: true, top_k: 10 });
+  const submit = () => onSubmit({
+    travel_date: travelDate,
+    ...(region ? { region } : {}),
+    ...(difficulty ? { difficulty } : {}),
+    ...(distance ? { max_distance_km: Number(distance) } : {}),
+    ...(elevation ? { max_elevation_gain_m: Number(elevation) } : {}),
+    ...(time ? { max_time_hours: Number(time) } : {}),
+    preferences_text: preferences,
+    desired_features: features,
+    condition_weights: Object.fromEntries(Object.entries(conditionWeights).map(([key, value]) => [key, Number(value)])),
+    allow_experimental: true,
+    personalization_weight: 0.4,
+    exclude_saved: true,
+    top_k: 10,
+  });
   const results = response && "results" in response ? response.results : [];
-  return <aside className="recommendation-panel"><div className="recommendation-panel-head"><div><span className="eyebrow">EXPERIMENTAL SEASONAL RECOMMENDATIONS</span><h2>Plan a better day out.</h2></div><span className="recommendation-note">Reviewer-condition scores, not safety guarantees.</span></div><div className="recommendation-controls"><label>Date<input type="date" value={travelDate} onChange={(event) => setTravelDate(event.target.value)} /></label><label>Region<select value={region} onChange={(event) => setRegion(event.target.value)}><option value="">All regions</option>{options.regions.map((item) => <option key={item}>{item}</option>)}</select></label><label>Difficulty<select value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="">Any difficulty</option>{options.difficulties.map((item) => <option key={item}>{item}</option>)}</select></label><label>Max km<input type="number" min="0" value={distance} onChange={(event) => setDistance(event.target.value)} /></label><label>Max hours<input type="number" min="0" value={time} onChange={(event) => setTime(event.target.value)} /></label><label>Max elevation<input type="number" min="0" value={elevation} onChange={(event) => setElevation(event.target.value)} /></label><label className="recommendation-preferences">Preferences<input placeholder="mountain views, quiet lake" value={preferences} onChange={(event) => setPreferences(event.target.value)} /></label><div className="recommendation-options"><span>Features</span>{["views", "lake", "forest", "waterfall", "coastal"].map((feature) => <label key={feature}><input type="checkbox" checked={features.includes(feature)} onChange={(event) => setFeatures((current) => event.target.checked ? [...current, feature] : current.filter((item) => item !== feature))} />{feature}</label>)}</div><div className="recommendation-options"><span>Condition weight</span>{Object.keys(conditionWeights).map((key) => <label key={key}>{key}<input type="number" min="0" step="0.1" value={conditionWeights[key as keyof typeof conditionWeights]} onChange={(event) => setConditionWeights((current) => ({ ...current, [key]: event.target.value }))} /></label>)}</div><button className="recommendation-submit" onClick={submit} disabled={loading}>{loading ? "Loading..." : "Recommend"}</button></div>{error && <p className="recommendation-error">{error}</p>}{response?.status === "no_matches" && <p className="recommendation-empty">No hikes match those filters.</p>}{results.length > 0 && <div className="recommendation-results">{results.map((result) => <article className="recommendation-card" key={result.hike_id}><div><span className="recommendation-rank">#{result.rank ?? "-"}</span><h3>{result.name}</h3><p>{result.region} · {result.difficulty ?? "Difficulty unavailable"}</p><p>{result.distance_km ?? "-"} km · {result.elevation_gain_m ?? "-"} m gain · {result.estimated_time_hours ?? "Time unavailable"}</p></div><div className="recommendation-card-actions"><span>{result.ranking_score == null ? "Unranked" : `Score ${result.ranking_score.toFixed(2)}`}</span><button onClick={() => onOpen(result)}>View details</button><button onClick={() => onSave(result)}>Save</button>{result.source_url && <a href={result.source_url} target="_blank" rel="noreferrer">Source</a>}</div><p className="recommendation-reasons">{result.reasons.join(" ") || "Catalog match; model evidence is limited."}</p></article>)}</div>}</aside>;
+  const personalization = getRecommendationPersonalization(response);
+  const personalizationSummary = (() => {
+    if (!response) return "";
+    const status = personalization?.status ?? "disabled";
+    const used = personalization?.saved_examples_used ?? 0;
+    if (status === "personalized") return `Personalized from ${used} saved hike${used === 1 ? "" : "s"}.`;
+    if (status === "cold_start") return "No saved hikes yet. Save hikes to personalize future recommendations.";
+    if (status === "unusable_profile") return "Saved profile could not be used, but recommendations remain available.";
+    if (status === "disabled") return "Personalization is disabled for this request.";
+    return "";
+  })();
+  return <aside className="recommendation-panel"><div className="recommendation-panel-head"><div><span className="eyebrow">EXPERIMENTAL SEASONAL RECOMMENDATIONS</span><h2>Plan a better day out.</h2></div><span className="recommendation-note">Reviewer-condition scores, not safety guarantees.</span></div><div className="recommendation-controls"><label>Date<input type="date" value={travelDate} onChange={(event) => setTravelDate(event.target.value)} /></label><label>Region<select value={region} onChange={(event) => setRegion(event.target.value)}><option value="">All regions</option>{options.regions.map((item) => <option key={item}>{item}</option>)}</select></label><label>Difficulty<select value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="">Any difficulty</option>{options.difficulties.map((item) => <option key={item}>{item}</option>)}</select></label><label>Max km<input type="number" min="0" value={distance} onChange={(event) => setDistance(event.target.value)} /></label><label>Max hours<input type="number" min="0" value={time} onChange={(event) => setTime(event.target.value)} /></label><label>Max elevation<input type="number" min="0" value={elevation} onChange={(event) => setElevation(event.target.value)} /></label><label className="recommendation-preferences">Preferences<input placeholder="mountain views, quiet lake" value={preferences} onChange={(event) => setPreferences(event.target.value)} /></label><div className="recommendation-options"><span>Features</span>{["views", "lake", "forest", "waterfall", "coastal"].map((feature) => <label key={feature}><input type="checkbox" checked={features.includes(feature)} onChange={(event) => setFeatures((current) => event.target.checked ? [...current, feature] : current.filter((item) => item !== feature))} />{feature}</label>)}</div><div className="recommendation-options"><span>Condition weight</span>{Object.keys(conditionWeights).map((key) => <label key={key}>{key}<input type="number" min="0" step="0.1" value={conditionWeights[key as keyof typeof conditionWeights]} onChange={(event) => setConditionWeights((current) => ({ ...current, [key]: event.target.value }))} /></label>)}</div><button className="recommendation-submit" onClick={submit} disabled={loading}>{loading ? "Loading..." : "Recommend"}</button></div>{personalizationSummary && <p className="recommendation-status">{personalizationSummary}</p>}{error && <p className="recommendation-error">{error}</p>}{response?.status === "no_matches" && <p className="recommendation-empty">No hikes match those filters.</p>}{results.length > 0 && <div className="recommendation-results">{results.map((result) => {
+    const similarityText = result.personalization_used && result.personalization_score != null && result.similar_saved_hike ? `Similar to your saved hike “${result.similar_saved_hike.name}” (affinity ${result.personalization_score.toFixed(2)}).` : result.personalization_used ? "Personalized using your saved hikes." : "";
+    return <article className="recommendation-card" key={result.hike_id}><div><span className="recommendation-rank">#{result.rank ?? "-"}</span><h3>{result.name}</h3><p>{result.region} · {result.difficulty ?? "Difficulty unavailable"}</p><p>{result.distance_km ?? "-"} km · {result.elevation_gain_m ?? "-"} m gain · {result.estimated_time_hours ?? "Time unavailable"}</p></div><div className="recommendation-card-actions"><span>{result.ranking_score == null ? "Unranked" : `Score ${result.ranking_score.toFixed(2)}`}</span><button onClick={() => onOpen(result)}>View details</button><button onClick={() => onSave(result)}>Save</button>{result.source_url && <a href={result.source_url} target="_blank" rel="noreferrer">Source</a>}</div>{similarityText && <p className="recommendation-similarity">{similarityText}</p>}<p className="recommendation-reasons">{result.reasons.join(" ") || "Catalog match; model evidence is limited."}</p></article>;
+  })}</div>}</aside>;
 }
 
-function ProfileView({ saved, onSelect }: { saved: SavedTrail[]; onSelect: (trail: Trail) => void }) { return <section className="profile-stage"><div className="profile-header"><div><p className="eyebrow">YOUR TRAIL VAULT</p><h1>Keep the wild<br /><em>within reach.</em></h1></div><div className="avatar"><CircleUserRound size={35} /></div></div><div className="profile-stats"><div><strong>{saved.length}</strong><span>Saved trails</span></div><div><strong>{saved.filter((trail) => trail.metrics?.difficulty === "Hard").length}</strong><span>Big days</span></div><div><strong>NZ</strong><span>Home range</span></div></div><div className="saved-header"><div><span className="eyebrow">BOOKMARKED</span><h2>Routes worth returning to</h2></div><span className="saved-count">{saved.length.toString().padStart(2, "0")} / VAULT</span></div>{saved.length === 0 ? <div className="empty-state"><Bookmark size={28} /><h3>Your vault is quiet.</h3><p>Save a trail from Explore and it will appear here.</p></div> : <div className="saved-grid">{saved.map((trail) => <button className="saved-card" key={trail.place_id} onClick={() => onSelect(trail)}><div className="saved-card-photo" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=700&q=80)" }} /><div className="saved-card-copy"><span className="eyebrow">{trail.metrics?.difficulty ?? "TRAIL"}</span><h3>{trail.name}</h3><p>{trail.address ?? "New Zealand"}</p><span className="text-link">OPEN DETAILS <Send size={13} /></span></div></button>)}</div>}</section>; }
+function ProfileView({ saved, onSelect, onRemove }: { saved: SavedTrail[]; onSelect: (trail: Trail | SavedTrail) => void; onRemove: (trail: SavedTrail) => void }) { return <section className="profile-stage"><div className="profile-header"><div><p className="eyebrow">YOUR TRAIL VAULT</p><h1>Keep the wild<br /><em>within reach.</em></h1></div><div className="avatar"><CircleUserRound size={35} /></div></div><div className="profile-stats"><div><strong>{saved.length}</strong><span>Saved trails</span></div><div><strong>{saved.filter((trail) => trail.metrics?.difficulty === "Hard").length}</strong><span>Big days</span></div><div><strong>NZ</strong><span>Home range</span></div></div><div className="saved-header"><div><span className="eyebrow">BOOKMARKED</span><h2>Routes worth returning to</h2></div><span className="saved-count">{saved.length.toString().padStart(2, "0")} / VAULT</span></div>{saved.length === 0 ? <div className="empty-state"><Bookmark size={28} /><h3>Your vault is quiet.</h3><p>Save a trail from Explore and it will appear here.</p></div> : <div className="saved-grid">{saved.map((trail, index) => <div className="saved-card" key={getSaveIdentity(trail) ?? `${trail.name}-${index}`}><div className="saved-card-photo" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=700&q=80)" }} /><div className="saved-card-copy"><span className="eyebrow">{trail.metrics?.difficulty ?? "TRAIL"}</span><h3>{trail.name}</h3><p>{trail.address ?? "New Zealand"}</p><div className="saved-card-actions"><button type="button" className="saved-card-open" onClick={() => onSelect(trail)}><span>OPEN DETAILS</span> <Send size={13} /></button><button type="button" className="saved-card-remove" onClick={() => onRemove(trail)}>REMOVE</button></div></div></div>)}</div>}</section>; }
 
 function InfoDrawer({ trail, details, metrics, saved, onClose, onSave }: { trail: Trail; details: Details | null; metrics: Metrics | null; saved: boolean; onClose: () => void; onSave: () => void }) { return <aside className="info-drawer"><div className="drawer-handle" /><button className="close-drawer" onClick={onClose} aria-label="Close trail information"><X /></button><div className="drawer-photo" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1439853949127-fa647821eba0?auto=format&fit=crop&w=1200&q=85)" }}><div className="drawer-photo-title"><span className="eyebrow">TRAIL INTELLIGENCE</span><h2>{details?.name ?? trail.name}</h2></div></div><div className="drawer-content"><div className="drawer-heading"><div><span className="eyebrow">{metrics?.difficulty ?? "DISCOVER"}</span><h3>{trail.address ?? "New Zealand"}</h3></div><button className={`save-pill ${saved ? "is-active" : ""}`} onClick={onSave}><Bookmark size={16} fill={saved ? "currentColor" : "none"} /> {saved ? "Saved" : "Save"}</button></div><div className="metrics-grid"><Metric label="Length" value={metrics?.length_km ? `${metrics.length_km} km` : "Awaiting"} /><Metric label="Elevation" value={metrics?.elevation_gain_meters ? `${metrics.elevation_gain_meters} m` : "Awaiting"} /><Metric label="Rating" value={details?.rating ? `${details.rating} / 5` : trail.rating ? `${trail.rating} / 5` : "-"} /></div><div className="reviews-head"><h3>Field reports</h3><span>{details?.user_rating_count ?? trail.user_rating_count ?? 0} reviews</span></div>{details?.reviews?.length ? details.reviews.slice(0, 3).map((review, index) => <div className="review" key={`${review.author}-${index}`}><strong>{review.author}</strong><span>{review.relative_time ?? "Recent"} · {review.rating ?? "-"} stars</span><p>{review.text}</p></div>) : <p className="muted-copy">Reviews will appear when Google Places details are available.</p>}<div className="drawer-actions"><button onClick={onSave}><Bookmark size={16} /> {saved ? "Remove from vault" : "Save to vault"}</button><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trail.name)}`} target="_blank" rel="noreferrer"><MapPin size={16} /> Directions</a></div></div></aside>; }
 function Metric({ label, value }: { label: string; value: string }) { const isLoading = value === "Awaiting" || value === "Loading"; return <div><span>{label}</span><strong className={isLoading ? "metric-loading" : ""}>{isLoading && <span className="loading-spinner" aria-hidden="true" />} {isLoading ? "Loading" : value}</strong></div>; }

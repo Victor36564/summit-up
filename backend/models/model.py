@@ -29,6 +29,17 @@ def catalog_options(recommender: Any) -> dict[str, list[str]]:
 	}
 
 
+def catalog_options_from_csv() -> dict[str, list[str]]:
+	"""Return filter values without requiring the recommendation runtime to load."""
+	import pandas as pd
+
+	hikes = pd.read_csv(SUMMITUP_ML_ROOT / "data" / "hikes.csv")
+	return {
+		"regions": sorted(hikes["region"].dropna().astype(str).unique().tolist()),
+		"difficulties": sorted(hikes["difficulty_or_grade"].dropna().astype(str).unique().tolist()),
+	}
+
+
 def _json_safe(value: Any) -> Any:
 	if isinstance(value, dict):
 		return {key: _json_safe(item) for key, item in value.items()}
