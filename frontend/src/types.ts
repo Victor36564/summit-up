@@ -1,5 +1,5 @@
 export type Trail = {
-  place_id: string;
+  place_id: string | null;
   name: string;
   address?: string | null;
   latitude?: number | null;
@@ -36,7 +36,22 @@ export type Metrics = {
 
 export type Review = { author: string; rating?: number | null; relative_time?: string | null; text: string };
 export type Details = Trail & { website_uri?: string | null; opening_hours: string[]; reviews: Review[]; photos: string[] };
-export type SavedTrail = Trail & { id?: number; catalog_hike_id?: string | null; metrics?: Metrics | null };
+export type Personalization = {
+  status: "cold_start" | "personalized" | "unusable_profile" | "disabled";
+  saved_examples_used: number;
+  saved_catalog_hike_ids?: string[];
+  saved_catalog_count?: number;
+  external_saved_count?: number;
+  unresolved_saved_ids?: string[];
+  matching_methods?: string[];
+  model_category?: string;
+  model_id?: string;
+  revision?: string;
+  profile_method?: string;
+  catalog_text_status?: string;
+  rank_quality_validated?: boolean;
+};
+export type SavedTrail = Trail & { id?: number | null; catalog_hike_id?: string | null; metrics?: Metrics | null };
 export type CatalogSave = { catalog_hike_id: string; name: string; address?: string | null; latitude?: number | null; longitude?: number | null; metrics?: Metrics | null };
 
 export type RecommendationRequest = {
@@ -51,9 +66,48 @@ export type RecommendationRequest = {
   desired_features?: string[];
   condition_weights?: Record<string, number>;
   allow_experimental: true;
+  personalization_weight?: number;
+  exclude_saved?: boolean;
   top_k?: number;
 };
 export type RecommendationCondition = { model_score: number | null; status: string; used_in_ranking: boolean };
-export type RecommendationResult = { hike_id: string; name: string; region: string; distance_km: number | null; elevation_gain_m: number | null; estimated_time_hours: string | null; difficulty: string | null; ranking_score: number | null; seasonal_suitability_score: number | null; text_similarity: number | null; conditions: Record<string, RecommendationCondition>; unsupported_weighted_targets: string[]; unknown_requested_features: string[]; same_hike_month_observations: number | null; climate_scope: string | null; source_url: string | null; reasons: string[]; rank: number | null };
-export type RecommendationResponse = { status: "experimental" | "limited_evidence"; travel_date: string; as_of: string; text_backend: string; candidates: number; prediction_meaning: string; ranking_validated: boolean; results: RecommendationResult[] } | { status: "no_matches"; results: RecommendationResult[]; request: Record<string, unknown> };
+export type SimilarSavedHike = { hike_id: string; name: string };
+export type RecommendationResult = {
+  personalization_score: number | null;
+  personalization_used: boolean;
+  similar_saved_hike: SimilarSavedHike | null;
+  hike_id: string;
+  name: string;
+  region: string;
+  distance_km: number | null;
+  elevation_gain_m: number | null;
+  estimated_time_hours: string | null;
+  difficulty: string | null;
+  ranking_score: number | null;
+  seasonal_suitability_score: number | null;
+  text_similarity: number | null;
+  conditions: Record<string, RecommendationCondition>;
+  unsupported_weighted_targets: string[];
+  unknown_requested_features: string[];
+  same_hike_month_observations: number | null;
+  climate_scope: string | null;
+  source_url: string | null;
+  reasons: string[];
+  rank: number | null;
+};
+export type BaseRecommendationResponse = {
+  personalization?: Personalization;
+  status?: "experimental" | "limited_evidence" | "no_matches";
+  results?: RecommendationResult[];
+  request?: Record<string, unknown>;
+  travel_date?: string;
+  as_of?: string;
+  text_backend?: string;
+  candidates?: number;
+  prediction_meaning?: string;
+  ranking_validated?: boolean;
+};
+export type RecommendationResponse =
+  | (BaseRecommendationResponse & { status: "experimental" | "limited_evidence"; travel_date: string; as_of: string; text_backend: string; candidates: number; prediction_meaning: string; ranking_validated: boolean; results: RecommendationResult[] })
+  | (BaseRecommendationResponse & { status: "no_matches"; results: RecommendationResult[]; request: Record<string, unknown> });
 export type RecommendationOptions = { regions: string[]; difficulties: string[] };

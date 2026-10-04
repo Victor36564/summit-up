@@ -8,13 +8,36 @@ from sqlalchemy.orm import Session
 
 from config import Settings, get_settings
 from database import SavedCatalogRecord, SavedTrailRecord, catalog_record_to_dict, get_db, list_saved, record_to_dict
-from models.model import catalog_options, recommend
+from models.model import catalog_options, catalog_options_from_csv, load_recommender, recommend
 from schemas import NoMatchResponse, RecommendationRequest, RecommendationResponse, SaveToggleRequest, SaveToggleResponse, SavedTrail
 from services.alltrails import get_metrics
 from services.google_places import get_place_details, search_places
 from services.youtube import search_shorts
 
 router = APIRouter(prefix="/api")
+
+
+def get_recommender(request: Request):
+    recommender = getattr(request.app.state, "recommender", None)
+    if recommender is not None:
+        return recommender
+    try:
+        recommender = load_recommender()
+        request.app.state.recommender = recommender
+        request.app.state.recommender_error = None
+        return recommender
+    except Exception as error:
+        request.app.state.recommender = None
+        request.app.state.recommender_error = str(error)
+        return None
+
+
+def model_unavailable(request: Request) -> HTTPException:
+    detail = "Recommendation models are unavailable"
+    error = getattr(request.app.state, "recommender_error", None)
+    if error:
+        detail = f"{detail}: {error}"
+    return HTTPException(status_code=503, detail=detail)
 
 
 @router.post("/recommendations", response_model=RecommendationResponse | NoMatchResponse)
@@ -25,9 +48,9 @@ def recommendations(
     db: Session = Depends(get_db),
 ):
     session_id = session_id_dependency(x_session_id)
-    recommender = getattr(request.app.state, "recommender", None)
+    recommender = get_recommender(request)
     if recommender is None:
-        raise HTTPException(status_code=503, detail="Recommendation models are unavailable")
+        raise model_unavailable(request)
     try:
         model_request = payload.to_recommender_request()
         # Histories are read from storage, never supplied by the caller.
@@ -45,10 +68,13 @@ def recommendations(
 
 @router.get("/recommendations/options")
 def recommendation_options(request: Request):
-    recommender = getattr(request.app.state, "recommender", None)
-    if recommender is None:
-        raise HTTPException(status_code=503, detail="Recommendation models are unavailable")
-    return catalog_options(recommender)
+    recommender = get_recommender(request)
+    if recommender is not None:
+        return catalog_options(recommender)
+    try:
+        return catalog_options_from_csv()
+    except Exception as error:
+        raise HTTPException(status_code=503, detail="Recommendation options are unavailable") from error
 
 
 def settings_dependency() -> Settings:
