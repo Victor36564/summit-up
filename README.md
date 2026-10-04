@@ -51,7 +51,7 @@ Saved requests use the `X-Session-ID` header. The frontend creates one anonymous
 
 Provider calls are cached in memory. AllTrails calls use a longer cache TTL because the Apify actor can take several seconds. Missing credentials produce a useful provider error or unavailable metrics state instead of silently fabricating data.
 
-Recommendations use the supplied saved models and catalog with the TF-IDF backend. They do not require Google, YouTube, or Apify credentials. Results are explicitly experimental seasonal recommendations based on selectively reported reviewer conditions, not validated probabilities or safety guarantees.
+Recommendations use the supplied saved models and catalog with bundled pretrained MiniLM semantic similarity and session-specific saved-hike personalization. They do not require Google, YouTube, or Apify credentials. Results are explicitly experimental seasonal recommendations based on selectively reported reviewer conditions, not validated probabilities or safety guarantees.
 
 Example request body for `POST /api/recommendations`:
 
@@ -85,3 +85,15 @@ The image builds the Vite app, copies it into the Python runtime, runs as UID 10
 ## Testing
 
 The scripts under `test/` are provider experiments and references for the production services under `backend/services/`. Unit and mocked API tests should run without credentials. Live provider smoke tests should be opt-in because Google, YouTube, and Apify usage may incur quota or scraping costs.
+Personalization reads saved hikes server-side through the existing X-Session-ID. Catalog saves are excluded by default; empty histories use cold-start ranking. Each new recommendation request reads current saves; frontend refresh after saves/removals is a separate integration task. Similarity is an affinity score, not a probability; ranking quality remains unvalidated. MiniLM assets run offline after dependencies are installed.
+
+
+Backend and ML regression checks (run from the repository root):
+
+```bash
+python -m pip install -r backend/requirements-dev.txt
+(cd backend && ../.venv/bin/python -m unittest test_recommendations test_personalization_integration -v)
+(cd summitup_ml && ../.venv/bin/python -m unittest test_personalization test_contract -v)
+```
+
+The command examples assume the local `.venv` setup. Integration tests use an isolated in-memory database and actual bundled MiniLM inference, without provider calls. The frontend is unchanged; see [the frontend integration handoff](docs/FRONTEND_PERSONALIZATION_HANDOFF.md).

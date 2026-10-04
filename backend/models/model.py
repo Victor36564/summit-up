@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 def load_recommender() -> "Recommender":
 	from recommend import Recommender
 
-	return Recommender(root=SUMMITUP_ML_ROOT, text_backend="tfidf")
+	return Recommender(root=SUMMITUP_ML_ROOT, text_backend="minilm")
 
 
 def recommend(recommender: Any, request: dict[str, Any]) -> dict[str, Any]:

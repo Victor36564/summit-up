@@ -18,12 +18,24 @@ router = APIRouter(prefix="/api")
 
 
 @router.post("/recommendations", response_model=RecommendationResponse | NoMatchResponse)
-def recommendations(payload: RecommendationRequest, request: Request):
+def recommendations(
+    payload: RecommendationRequest,
+    request: Request,
+    x_session_id: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
+    session_id = session_id_dependency(x_session_id)
     recommender = getattr(request.app.state, "recommender", None)
     if recommender is None:
         raise HTTPException(status_code=503, detail="Recommendation models are unavailable")
     try:
-        result = recommend(recommender, payload.to_recommender_request())
+        model_request = payload.to_recommender_request()
+        # Histories are read from storage, never supplied by the caller.
+        saves = list_saved(db, session_id) if session_id != "anonymous" else []
+        model_request["saved_hikes"] = [
+            {**record, "hike_id": record.get("catalog_hike_id")} for record in saves
+        ]
+        result = recommend(recommender, model_request)
         return result
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
