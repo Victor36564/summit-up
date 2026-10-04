@@ -42,12 +42,34 @@ The Vite development server expects the API at the same origin in production. Fo
 - `GET /api/trails/search?query=...`
 - `GET /api/trails/details/{place_id}`
 - `GET /api/trails/metrics?name=...`
+- `GET /api/recommendations/options`
+- `POST /api/recommendations`
 - `GET /api/saved`
 - `POST /api/saved`
 
 Saved requests use the `X-Session-ID` header. The frontend creates one anonymous UUID and stores it in local storage; no account system is included in this MVP.
 
 Provider calls are cached in memory. AllTrails calls use a longer cache TTL because the Apify actor can take several seconds. Missing credentials produce a useful provider error or unavailable metrics state instead of silently fabricating data.
+
+Recommendations use the supplied saved models and catalog with the TF-IDF backend. They do not require Google, YouTube, or Apify credentials. Results are explicitly experimental seasonal recommendations based on selectively reported reviewer conditions, not validated probabilities or safety guarantees.
+
+Example request body for `POST /api/recommendations`:
+
+```json
+{
+	"travel_date": "2027-01-15",
+	"region": "Otago",
+	"max_distance_km": 10,
+	"max_elevation_gain_m": 700,
+	"preferences_text": "mountain views and a peaceful lake walk",
+	"desired_features": ["views", "lake"],
+	"condition_weights": {"overall_good": 1.0, "bugs": 0.8, "mud": 0.5},
+	"allow_experimental": true,
+	"top_k": 10
+}
+```
+
+The ML artifacts require `scikit-learn==1.8.0`; install `backend\requirements.txt` before starting FastAPI. The recommender loads once during startup. If its assets or dependencies are unavailable, provider-only routes remain available and recommendation requests return `503`.
 
 ## Docker / Hugging Face Spaces
 

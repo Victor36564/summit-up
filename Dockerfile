@@ -13,6 +13,7 @@ WORKDIR /app/backend
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./
+COPY summitup_ml/ /app/summitup_ml/
 COPY --from=frontend-builder /build/frontend/dist /app/frontend/dist
 RUN useradd --create-home --uid 1000 appuser \
     && chown -R appuser:appuser /app
