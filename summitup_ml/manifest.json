@@ -1,0 +1,163 @@
+{
+  "created": "2026-10-01",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 11722,
+      "sha256": "8115422fe36cd33e6d091a593d3616620914ebdfba9347a500cfef0fd89a33bf"
+    },
+    {
+      "path": "RESULTS.md",
+      "bytes": 3498,
+      "sha256": "6c6f0527639e8732ef64359cd963de78c97e40088f37e600020201ae3b03a67a"
+    },
+    {
+      "path": "app_integration.py",
+      "bytes": 442,
+      "sha256": "23e490a3c73a25c5518cf77abc4ad623576a2c89fa4980ed6094ae2ca9ca493c"
+    },
+    {
+      "path": "audit.json",
+      "bytes": 1119,
+      "sha256": "1e3acaf5e28ac4ce77fad25a8e02d3d40c071d89427d738796b2095e1d0d6c02"
+    },
+    {
+      "path": "data/hike_locations.csv",
+      "bytes": 25433,
+      "sha256": "db7f3e3a8d2144e599ffeeaf5db5636c55b1b8c3e4db7446e5df9f378bb6eb35"
+    },
+    {
+      "path": "data/hikes.csv",
+      "bytes": 196335,
+      "sha256": "81afc5bafb1172d18e31c1f4960d47b264bab0c0c479ea3b7be2b8d81483d458"
+    },
+    {
+      "path": "data/observations_source.csv",
+      "bytes": 1505737,
+      "sha256": "1d8b56e60226c5c7e6ef2b90db911112f6c42ec0f08f6d5e07ea5466c84ce0eb"
+    },
+    {
+      "path": "data/review_curation.csv",
+      "bytes": 318008,
+      "sha256": "102658cd973f4eba1a7d9ae15e51ff2f57b5bef75573c7d71cf8832ba4e2abc2"
+    },
+    {
+      "path": "data/seasonal_training.csv",
+      "bytes": 1844539,
+      "sha256": "2f58f780add3be34cc2ef9832581f1e9d6eb3579d65423fd7397d52c1367c5d7"
+    },
+    {
+      "path": "data/weather_source.csv",
+      "bytes": 25608058,
+      "sha256": "ef0e5d3bc864e8e72167d8299ad6ee7acfe7553c1db6335d252e8cc14efaf3dd"
+    },
+    {
+      "path": "evaluation.json",
+      "bytes": 9287,
+      "sha256": "4d3af3a40980e5632a31e7af31f89938761db769f2c8e3c70b2d75ea2fcd7e09"
+    },
+    {
+      "path": "example_request.json",
+      "bytes": 358,
+      "sha256": "09d2f8fa1e490d0b8bcd92fbcc03f8e279e5be479429a875eb4441b39e5f4e7e"
+    },
+    {
+      "path": "example_response.json",
+      "bytes": 24676,
+      "sha256": "da589e318b66b576412edd784170e33bfc3301f4880e483e3ab29d794cc76488"
+    },
+    {
+      "path": "fetch_trail_weather.py",
+      "bytes": 2337,
+      "sha256": "70f2b8e34c60d760d3135065593acebda02bb1acde7c3d8cefb5c209546f6553"
+    },
+    {
+      "path": "import_curated.py",
+      "bytes": 3224,
+      "sha256": "abe000ffe0e77417d084493682a92c4f833996d246b92bff065cb8aea8fbe2f9"
+    },
+    {
+      "path": "models/bugs.joblib",
+      "bytes": 249911,
+      "sha256": "28865377110d02f3e906cc8896530079ee03a0ca4f75ad4b075194c761ab5d5a"
+    },
+    {
+      "path": "models/mud.joblib",
+      "bytes": 371736,
+      "sha256": "cdd853913d2614e1ff52726a90762097573154a880d4a8f303efa00ed617ea4a"
+    },
+    {
+      "path": "models/overall_good.joblib",
+      "bytes": 7619,
+      "sha256": "18540f014322cdd247da1d5da7ee3c187b0355cf5d1e55ad7419896432133fff"
+    },
+    {
+      "path": "prepare_data.py",
+      "bytes": 3443,
+      "sha256": "62725ae15cfda90661a73040522be7c668360add1d127a9ad50ec5a3a5223c71"
+    },
+    {
+      "path": "propose_review_labels.py",
+      "bytes": 3007,
+      "sha256": "1cde99b585421cbbdb12088d7895a1aecd3df1a1a34d66854f153d18c278f28e"
+    },
+    {
+      "path": "recommend.py",
+      "bytes": 9205,
+      "sha256": "f484141d58752dcaea05a3b902a5f7618c08841383c800f47cb5afef3e96c777"
+    },
+    {
+      "path": "reliability_bins.csv",
+      "bytes": 309,
+      "sha256": "520d0f2923df4b0415596238a6f4f5458e5d90a91c9d0bb8ae2ad96fa8d40ced"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 70,
+      "sha256": "ff4e37dbce2e1a78ff77910a57af1e5c63b2fdb0df34a81b0bbd5673bc9c3152"
+    },
+    {
+      "path": "requirements_optional_ai.txt",
+      "bytes": 60,
+      "sha256": "4dc5c9161a54e2113861cf526c5d68872a643e74fcadd1f80976015796080f7a"
+    },
+    {
+      "path": "review_label_instructions.txt",
+      "bytes": 1272,
+      "sha256": "2f1a9eb758bcd9ac62c152cf46ec408f39e1a473b64bd686f3e3afe32c029a0b"
+    },
+    {
+      "path": "seasonal.py",
+      "bytes": 5001,
+      "sha256": "321dbe8554b6703a5efd879f2b26bc42e5ddf612629107288a90cad08b9872dc"
+    },
+    {
+      "path": "seasonal_scores_2027.csv",
+      "bytes": 856763,
+      "sha256": "0c9e5c2a5ce5cf90ab5074f17f163bb9a7899aa8f3fbdb40938e69dd94312dde"
+    },
+    {
+      "path": "test_contract.py",
+      "bytes": 1848,
+      "sha256": "62c2bea3ef99b16a048694f78d811dfbf3752f1c9bece4a1139c1c10fb98ccfa"
+    },
+    {
+      "path": "test_predictions.csv",
+      "bytes": 2761,
+      "sha256": "54b10fe1c7d3fcd18c96b51b5164553af685aa3bd7a4fee8caa80a8f47b9df3a"
+    },
+    {
+      "path": "train.py",
+      "bytes": 5195,
+      "sha256": "6c5deb1a968c0c674cf542a09336f9d570e145717a0728066f69e98d2b175c8d"
+    },
+    {
+      "path": "train_and_integrate.ipynb",
+      "bytes": 2962,
+      "sha256": "52388435ad79c56507c185dab5e3467f70c491c588d1186be721c1888b1c1a87"
+    }
+  ],
+  "model_training_completed": true,
+  "production_validated": false,
+  "optional_pretrained_models_executed": false
+}

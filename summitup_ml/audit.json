@@ -1,0 +1,53 @@
+{
+  "source_rows": 2375,
+  "deduplicated_rows": 2375,
+  "hikes": 500,
+  "catalog_routes_with_observations": 407,
+  "source_files_reverified": false,
+  "google_reviews_included": false,
+  "labels": {
+    "overall_good": {
+      "positive": 2110,
+      "negative": 34,
+      "unknown": 231
+    },
+    "bugs": {
+      "positive": 101,
+      "negative": 86,
+      "unknown": 2188
+    },
+    "mud": {
+      "positive": 290,
+      "negative": 12,
+      "unknown": 2073
+    },
+    "snow": {
+      "positive": 21,
+      "negative": 6,
+      "unknown": 2348
+    },
+    "ice": {
+      "positive": 24,
+      "negative": 1,
+      "unknown": 2350
+    },
+    "scenic_positive": {
+      "positive": 0,
+      "negative": 0,
+      "unknown": 2375
+    },
+    "crowded": {
+      "positive": 0,
+      "negative": 0,
+      "unknown": 2375
+    },
+    "trail_quality_good": {
+      "positive": 0,
+      "negative": 0,
+      "unknown": 2375
+    }
+  },
+  "training_rows_with_prior_climate": 2347,
+  "excluded_no_prior_climate": 23,
+  "tag_warning": "Legacy terrain/scenery tags are retained but excluded from model features until reverified."
+}

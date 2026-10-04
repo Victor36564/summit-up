@@ -1,0 +1,761 @@
+{
+  "status": "experimental",
+  "travel_date": "2027-01-15",
+  "as_of": "2026-10-01",
+  "text_backend": "tfidf",
+  "candidates": 35,
+  "prediction_meaning": "Scores for explicit reviewer reports, not calibrated population trip probabilities.",
+  "ranking_validated": false,
+  "results": [
+    {
+      "hike_id": "NZ010",
+      "name": "Moke Lake Loop Track",
+      "region": "Otago",
+      "distance_km": 6.9201792,
+      "elevation_gain_m": 172.82160000000002,
+      "estimated_time_hours": "1.8166666666666667",
+      "difficulty": "Easy",
+      "ranking_score": 0.4853555276212733,
+      "seasonal_suitability_score": 0.6819091744481353,
+      "text_similarity": 0.09224823396754926,
+      "conditions": {
+        "overall_good": {
+          "model_score": 0.9857130041894875,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "bugs": {
+          "model_score": 0.4703027794465528,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "mud": {
+          "model_score": 0.6821593588030684,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "snow": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "ice": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "scenic_positive": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "crowded": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "trail_quality_good": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        }
+      },
+      "unsupported_weighted_targets": [
+        "snow",
+        "ice",
+        "scenic_positive",
+        "crowded",
+        "trail_quality_good"
+      ],
+      "unknown_requested_features": [
+        "views",
+        "lake"
+      ],
+      "same_hike_month_observations": 0,
+      "climate_scope": "regional settlement proxy",
+      "source_url": "https://www.alltrails.com/trail/new-zealand/otago/moke-lake-loop-track",
+      "reasons": [
+        "Seasonal model scores contribute; trained on selectively reported review labels.",
+        "Text preference similarity; current descriptions are sparse.",
+        "Requested features lack verified catalog evidence: views, lake",
+        "Current trail access has not been checked."
+      ],
+      "rank": 1
+    },
+    {
+      "hike_id": "NZ173",
+      "name": "Lake Gunn Nature Walk",
+      "region": "Otago",
+      "distance_km": 1.4484096000000002,
+      "elevation_gain_m": 23.7744,
+      "estimated_time_hours": "0.3333333333333333",
+      "difficulty": "Easy",
+      "ranking_score": 0.48509610971661676,
+      "seasonal_suitability_score": 0.6651274466279156,
+      "text_similarity": 0.12503343589401905,
+      "conditions": {
+        "overall_good": {
+          "model_score": 0.9856670300873553,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "bugs": {
+          "model_score": 0.45500160638681214,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "mud": {
+          "model_score": 0.7837452354674005,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "snow": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "ice": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "scenic_positive": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "crowded": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "trail_quality_good": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        }
+      },
+      "unsupported_weighted_targets": [
+        "snow",
+        "ice",
+        "scenic_positive",
+        "crowded",
+        "trail_quality_good"
+      ],
+      "unknown_requested_features": [
+        "views",
+        "lake"
+      ],
+      "same_hike_month_observations": 0,
+      "climate_scope": "regional settlement proxy",
+      "source_url": "https://www.alltrails.com/trail/new-zealand/southland/lake-gunn-nature-walk",
+      "reasons": [
+        "Seasonal model scores contribute; trained on selectively reported review labels.",
+        "Text preference similarity; current descriptions are sparse.",
+        "Requested features lack verified catalog evidence: views, lake",
+        "Current trail access has not been checked."
+      ],
+      "rank": 2
+    },
+    {
+      "hike_id": "NZ115",
+      "name": "Blue Lake Track",
+      "region": "Otago",
+      "distance_km": 4.02336,
+      "elevation_gain_m": 101.8032,
+      "estimated_time_hours": "1\u20131.5",
+      "difficulty": "Easy",
+      "ranking_score": 0.4762975224367072,
+      "seasonal_suitability_score": 0.6631251258701895,
+      "text_similarity": 0.1026423155697426,
+      "conditions": {
+        "overall_good": {
+          "model_score": 0.9856818700796582,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "bugs": {
+          "model_score": 0.46077682855565305,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "mud": {
+          "model_score": 0.7837452354674005,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "snow": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "ice": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "scenic_positive": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "crowded": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "trail_quality_good": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        }
+      },
+      "unsupported_weighted_targets": [
+        "snow",
+        "ice",
+        "scenic_positive",
+        "crowded",
+        "trail_quality_good"
+      ],
+      "unknown_requested_features": [
+        "views",
+        "lake"
+      ],
+      "same_hike_month_observations": 4,
+      "climate_scope": "regional settlement proxy",
+      "source_url": "https://www.alltrails.com/trail/new-zealand/otago/around-blue-lake-track",
+      "reasons": [
+        "Seasonal model scores contribute; trained on selectively reported review labels.",
+        "Text preference similarity; current descriptions are sparse.",
+        "Requested features lack verified catalog evidence: views, lake",
+        "Current trail access has not been checked."
+      ],
+      "rank": 3
+    },
+    {
+      "hike_id": "NZ166",
+      "name": "Lake Howden via Routeburn Track",
+      "region": "Otago",
+      "distance_km": 6.5983104,
+      "elevation_gain_m": 371.856,
+      "estimated_time_hours": "2.45",
+      "difficulty": "Moderate",
+      "ranking_score": 0.47041543788639756,
+      "seasonal_suitability_score": 0.6609227565627668,
+      "text_similarity": 0.08940080053365901,
+      "conditions": {
+        "overall_good": {
+          "model_score": 0.9869353027168152,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "bugs": {
+          "model_score": 0.5323462849451619,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "mud": {
+          "model_score": 0.6818718693326444,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "snow": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "ice": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "scenic_positive": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "crowded": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "trail_quality_good": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        }
+      },
+      "unsupported_weighted_targets": [
+        "snow",
+        "ice",
+        "scenic_positive",
+        "crowded",
+        "trail_quality_good"
+      ],
+      "unknown_requested_features": [
+        "views",
+        "lake"
+      ],
+      "same_hike_month_observations": 0,
+      "climate_scope": "regional settlement proxy",
+      "source_url": "https://www.alltrails.com/trail/new-zealand/otago/lake-howden-via-routeburn-track",
+      "reasons": [
+        "Seasonal model scores contribute; trained on selectively reported review labels.",
+        "Text preference similarity; current descriptions are sparse.",
+        "Requested features lack verified catalog evidence: views, lake",
+        "Current trail access has not been checked."
+      ],
+      "rank": 4
+    },
+    {
+      "hike_id": "NZ257",
+      "name": "Warrington Beach Walk",
+      "region": "Otago",
+      "distance_km": 4.6670976,
+      "elevation_gain_m": 67.9704,
+      "estimated_time_hours": "1.05",
+      "difficulty": "Easy",
+      "ranking_score": 0.45985399042920616,
+      "seasonal_suitability_score": 0.662542030681795,
+      "text_similarity": 0.054477909924028456,
+      "conditions": {
+        "overall_good": {
+          "model_score": 0.9862282337701211,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "bugs": {
+          "model_score": 0.498165086466821,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "mud": {
+          "model_score": 0.7276989880570723,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "snow": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "ice": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "scenic_positive": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "crowded": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "trail_quality_good": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        }
+      },
+      "unsupported_weighted_targets": [
+        "snow",
+        "ice",
+        "scenic_positive",
+        "crowded",
+        "trail_quality_good"
+      ],
+      "unknown_requested_features": [
+        "views",
+        "lake"
+      ],
+      "same_hike_month_observations": 0,
+      "climate_scope": "regional settlement proxy",
+      "source_url": "https://www.alltrails.com/trail/new-zealand/otago/warrington-beach-walk",
+      "reasons": [
+        "Seasonal model scores contribute; trained on selectively reported review labels.",
+        "Text preference similarity; current descriptions are sparse.",
+        "Requested features lack verified catalog evidence: views, lake",
+        "Current trail access has not been checked."
+      ],
+      "rank": 5
+    },
+    {
+      "hike_id": "NZ263",
+      "name": "Routeburn Nature Walk",
+      "region": "Otago",
+      "distance_km": 3.0577536,
+      "elevation_gain_m": 73.7616,
+      "estimated_time_hours": "0.8",
+      "difficulty": "Easy",
+      "ranking_score": 0.4588847049477292,
+      "seasonal_suitability_score": 0.6641072455647301,
+      "text_similarity": 0.04843962371372735,
+      "conditions": {
+        "overall_good": {
+          "model_score": 0.9856752532494343,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "bugs": {
+          "model_score": 0.4579449633960688,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "mud": {
+          "model_score": 0.7837452354674005,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "snow": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "ice": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "scenic_positive": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "crowded": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "trail_quality_good": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        }
+      },
+      "unsupported_weighted_targets": [
+        "snow",
+        "ice",
+        "scenic_positive",
+        "crowded",
+        "trail_quality_good"
+      ],
+      "unknown_requested_features": [
+        "views",
+        "lake"
+      ],
+      "same_hike_month_observations": 0,
+      "climate_scope": "regional settlement proxy",
+      "source_url": "https://www.alltrails.com/trail/new-zealand/otago/routeburn-nature-walk",
+      "reasons": [
+        "Seasonal model scores contribute; trained on selectively reported review labels.",
+        "Text preference similarity; current descriptions are sparse.",
+        "Requested features lack verified catalog evidence: views, lake",
+        "Current trail access has not been checked."
+      ],
+      "rank": 6
+    },
+    {
+      "hike_id": "NZ247",
+      "name": "Mou Waho Island Walk",
+      "region": "Otago",
+      "distance_km": 2.5749504000000005,
+      "elevation_gain_m": 173.73600000000002,
+      "estimated_time_hours": "1.0666666666666667",
+      "difficulty": "Moderate",
+      "ranking_score": 0.45832224587412573,
+      "seasonal_suitability_score": 0.6662174195483046,
+      "text_similarity": 0.04253189852576804,
+      "conditions": {
+        "overall_good": {
+          "model_score": 0.9869742087897447,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "bugs": {
+          "model_score": 0.473165991127912,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "mud": {
+          "model_score": 0.752282701852629,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "snow": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "ice": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "scenic_positive": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "crowded": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "trail_quality_good": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        }
+      },
+      "unsupported_weighted_targets": [
+        "snow",
+        "ice",
+        "scenic_positive",
+        "crowded",
+        "trail_quality_good"
+      ],
+      "unknown_requested_features": [
+        "views",
+        "lake"
+      ],
+      "same_hike_month_observations": 1,
+      "climate_scope": "regional settlement proxy",
+      "source_url": "https://www.alltrails.com/trail/new-zealand/otago/mou-waho-island-walk",
+      "reasons": [
+        "Seasonal model scores contribute; trained on selectively reported review labels.",
+        "Text preference similarity; current descriptions are sparse.",
+        "Requested features lack verified catalog evidence: views, lake",
+        "Current trail access has not been checked."
+      ],
+      "rank": 7
+    },
+    {
+      "hike_id": "NZ055",
+      "name": "Conroys Gully Walk",
+      "region": "Otago",
+      "distance_km": 4.345228800000001,
+      "elevation_gain_m": 117.9576,
+      "estimated_time_hours": "1.1666666666666667",
+      "difficulty": "Easy",
+      "ranking_score": 0.45799601015519936,
+      "seasonal_suitability_score": 0.663966764016185,
+      "text_similarity": 0.04605450243322786,
+      "conditions": {
+        "overall_good": {
+          "model_score": 0.9856781945408106,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "bugs": {
+          "model_score": 0.462181151643256,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "mud": {
+          "model_score": 0.7776194319779607,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "snow": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "ice": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "scenic_positive": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "crowded": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "trail_quality_good": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        }
+      },
+      "unsupported_weighted_targets": [
+        "snow",
+        "ice",
+        "scenic_positive",
+        "crowded",
+        "trail_quality_good"
+      ],
+      "unknown_requested_features": [
+        "views",
+        "lake"
+      ],
+      "same_hike_month_observations": 0,
+      "climate_scope": "regional settlement proxy",
+      "source_url": "https://www.alltrails.com/trail/new-zealand/otago/conroys-gully-walk",
+      "reasons": [
+        "Seasonal model scores contribute; trained on selectively reported review labels.",
+        "Text preference similarity; current descriptions are sparse.",
+        "Requested features lack verified catalog evidence: views, lake",
+        "Current trail access has not been checked."
+      ],
+      "rank": 8
+    },
+    {
+      "hike_id": "NZ134",
+      "name": "Pipeline Loop Track",
+      "region": "Otago",
+      "distance_km": 6.5983104,
+      "elevation_gain_m": 303.8856,
+      "estimated_time_hours": "2.216666666666667",
+      "difficulty": "Moderate",
+      "ranking_score": 0.4565192772797734,
+      "seasonal_suitability_score": 0.6847789159196601,
+      "text_similarity": 0.0,
+      "conditions": {
+        "overall_good": {
+          "model_score": 0.9865192271351869,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "bugs": {
+          "model_score": 0.4744392666054373,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "mud": {
+          "model_score": 0.6639526144712375,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "snow": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "ice": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "scenic_positive": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "crowded": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "trail_quality_good": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        }
+      },
+      "unsupported_weighted_targets": [
+        "snow",
+        "ice",
+        "scenic_positive",
+        "crowded",
+        "trail_quality_good"
+      ],
+      "unknown_requested_features": [
+        "views",
+        "lake"
+      ],
+      "same_hike_month_observations": 1,
+      "climate_scope": "regional settlement proxy",
+      "source_url": "https://www.alltrails.com/trail/new-zealand/otago/pipeline-loop-track",
+      "reasons": [
+        "Seasonal model scores contribute; trained on selectively reported review labels.",
+        "Text preference similarity; current descriptions are sparse.",
+        "Requested features lack verified catalog evidence: views, lake",
+        "Current trail access has not been checked."
+      ],
+      "rank": 9
+    },
+    {
+      "hike_id": "NZ251",
+      "name": "Routeburn Track: Routeburn Shelter to Routeburn Flats Hut",
+      "region": "Otago",
+      "distance_km": 7.081113600000001,
+      "elevation_gain_m": 299.9232,
+      "estimated_time_hours": "1.9166666666666665",
+      "difficulty": "Moderate",
+      "ranking_score": 0.4535211326082237,
+      "seasonal_suitability_score": 0.6802816989123355,
+      "text_similarity": 0.0,
+      "conditions": {
+        "overall_good": {
+          "model_score": 0.9846717378809365,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "bugs": {
+          "model_score": 0.49015865597172414,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "mud": {
+          "model_score": 0.6557938112103717,
+          "status": "experimental_weak_or_sparse",
+          "used_in_ranking": true
+        },
+        "snow": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "ice": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "scenic_positive": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "crowded": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        },
+        "trail_quality_good": {
+          "model_score": null,
+          "status": "withheld: insufficient labels",
+          "used_in_ranking": false
+        }
+      },
+      "unsupported_weighted_targets": [
+        "snow",
+        "ice",
+        "scenic_positive",
+        "crowded",
+        "trail_quality_good"
+      ],
+      "unknown_requested_features": [
+        "views",
+        "lake"
+      ],
+      "same_hike_month_observations": 0,
+      "climate_scope": "regional settlement proxy",
+      "source_url": "https://www.alltrails.com/trail/new-zealand/otago/routeburn-shelter-to-routeburn-flats-hut",
+      "reasons": [
+        "Seasonal model scores contribute; trained on selectively reported review labels.",
+        "Text preference similarity; current descriptions are sparse.",
+        "Requested features lack verified catalog evidence: views, lake",
+        "Current trail access has not been checked."
+      ],
+      "rank": 10
+    }
+  ]
+}
