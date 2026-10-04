@@ -36,4 +36,24 @@ export type Metrics = {
 
 export type Review = { author: string; rating?: number | null; relative_time?: string | null; text: string };
 export type Details = Trail & { website_uri?: string | null; opening_hours: string[]; reviews: Review[]; photos: string[] };
-export type SavedTrail = Trail & { id?: number; metrics?: Metrics | null };
+export type SavedTrail = Trail & { id?: number; catalog_hike_id?: string | null; metrics?: Metrics | null };
+export type CatalogSave = { catalog_hike_id: string; name: string; address?: string | null; latitude?: number | null; longitude?: number | null; metrics?: Metrics | null };
+
+export type RecommendationRequest = {
+  travel_date: string;
+  as_of?: string;
+  region?: string;
+  difficulty?: string;
+  max_distance_km?: number;
+  max_elevation_gain_m?: number;
+  max_time_hours?: number;
+  preferences_text?: string;
+  desired_features?: string[];
+  condition_weights?: Record<string, number>;
+  allow_experimental: true;
+  top_k?: number;
+};
+export type RecommendationCondition = { model_score: number | null; status: string; used_in_ranking: boolean };
+export type RecommendationResult = { hike_id: string; name: string; region: string; distance_km: number | null; elevation_gain_m: number | null; estimated_time_hours: string | null; difficulty: string | null; ranking_score: number | null; seasonal_suitability_score: number | null; text_similarity: number | null; conditions: Record<string, RecommendationCondition>; unsupported_weighted_targets: string[]; unknown_requested_features: string[]; same_hike_month_observations: number | null; climate_scope: string | null; source_url: string | null; reasons: string[]; rank: number | null };
+export type RecommendationResponse = { status: "experimental" | "limited_evidence"; travel_date: string; as_of: string; text_backend: string; candidates: number; prediction_meaning: string; ranking_validated: boolean; results: RecommendationResult[] } | { status: "no_matches"; results: RecommendationResult[]; request: Record<string, unknown> };
+export type RecommendationOptions = { regions: string[]; difficulties: string[] };

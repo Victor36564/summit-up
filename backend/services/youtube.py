@@ -70,7 +70,7 @@ def _get_json(url: str, params: dict[str, Any]) -> dict[str, Any]:
 def search_shorts(settings: Settings, query: str, limit: int) -> list[VideoResult]:
     if not settings.youtube_api_key:
         raise RuntimeError("YOUTUBE_API_KEY is not configured")
-    key = f"youtube:{query.lower()}:{limit}"
+    key = f"youtube:v2:{query.lower()}:{limit}"
     cached = cache.get(key)
     if cached is not None:
         return cached
@@ -121,6 +121,9 @@ def search_shorts(settings: Settings, query: str, limit: int) -> list[VideoResul
             description = snippet.get("description", "")
             if not description:
                 continue
+            hike_names = extract_hikes_master(description)
+            if not hike_names:
+                continue
             found.append(
                 VideoResult(
                     video_id=video["id"],
@@ -130,7 +133,7 @@ def search_shorts(settings: Settings, query: str, limit: int) -> list[VideoResul
                     tags=snippet.get("tags", []),
                     description=description,
                     url=f"https://www.youtube.com/shorts/{video['id']}",
-                    hike_names=extract_hikes_master(description),
+                    hike_names=hike_names,
                 )
             )
             if len(found) >= limit:

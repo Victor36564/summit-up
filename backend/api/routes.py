@@ -2,18 +2,41 @@ import json
 import re
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from config import Settings, get_settings
-from database import SavedTrailRecord, get_db, list_saved, record_to_dict
-from schemas import SaveToggleRequest, SaveToggleResponse, SavedTrail
+from database import SavedCatalogRecord, SavedTrailRecord, catalog_record_to_dict, get_db, list_saved, record_to_dict
+from models.model import catalog_options, recommend
+from schemas import NoMatchResponse, RecommendationRequest, RecommendationResponse, SaveToggleRequest, SaveToggleResponse, SavedTrail
 from services.alltrails import get_metrics
 from services.google_places import get_place_details, search_places
 from services.youtube import search_shorts
 
 router = APIRouter(prefix="/api")
+
+
+@router.post("/recommendations", response_model=RecommendationResponse | NoMatchResponse)
+def recommendations(payload: RecommendationRequest, request: Request):
+    recommender = getattr(request.app.state, "recommender", None)
+    if recommender is None:
+        raise HTTPException(status_code=503, detail="Recommendation models are unavailable")
+    try:
+        result = recommend(recommender, payload.to_recommender_request())
+        return result
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    except Exception as error:
+        raise HTTPException(status_code=500, detail="Recommendation inference failed") from error
+
+
+@router.get("/recommendations/options")
+def recommendation_options(request: Request):
+    recommender = getattr(request.app.state, "recommender", None)
+    if recommender is None:
+        raise HTTPException(status_code=503, detail="Recommendation models are unavailable")
+    return catalog_options(recommender)
 
 
 def settings_dependency() -> Settings:
@@ -30,7 +53,7 @@ def session_id_dependency(x_session_id: str | None) -> str:
 @router.get("/feed/shorts")
 def feed_shorts(
     query: Annotated[str, Query(min_length=2, max_length=200)],
-    limit: Annotated[int, Query(ge=1, le=30)] = 10,
+    limit: Annotated[int, Query(ge=1, le=30)] = 20,
     settings: Settings = Depends(settings_dependency),
 ):
     try:
@@ -90,16 +113,39 @@ def toggle_saved(
     db: Session = Depends(get_db),
 ):
     session_id = session_id_dependency(x_session_id)
+    if payload.catalog_hike_id and not payload.place_id:
+        existing_catalog = db.scalar(
+            select(SavedCatalogRecord).where(
+                SavedCatalogRecord.session_id == session_id,
+                SavedCatalogRecord.catalog_hike_id == payload.catalog_hike_id,
+            )
+        )
+        if payload.saved and existing_catalog is None:
+            existing_catalog = SavedCatalogRecord(
+                session_id=session_id,
+                catalog_hike_id=payload.catalog_hike_id,
+                name=payload.name,
+                address=payload.address,
+                latitude=payload.latitude,
+                longitude=payload.longitude,
+                metrics_json=payload.metrics.model_dump_json() if payload.metrics else None,
+            )
+            db.add(existing_catalog)
+        elif not payload.saved and existing_catalog is not None:
+            db.delete(existing_catalog)
+        db.commit()
+        return {"saved": bool(payload.saved), "trail": catalog_record_to_dict(existing_catalog) if payload.saved and existing_catalog else payload}
     existing = db.scalar(
         select(SavedTrailRecord).where(
             SavedTrailRecord.session_id == session_id,
-            SavedTrailRecord.place_id == payload.place_id,
+            SavedTrailRecord.place_id == payload.place_id if payload.place_id else SavedTrailRecord.catalog_hike_id == payload.catalog_hike_id,
         )
     )
     if payload.saved and existing is None:
         existing = SavedTrailRecord(
             session_id=session_id,
             place_id=payload.place_id,
+            catalog_hike_id=payload.catalog_hike_id,
             name=payload.name,
             address=payload.address,
             latitude=payload.latitude,
