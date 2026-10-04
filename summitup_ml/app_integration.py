@@ -2,7 +2,7 @@
 from recommend import Recommender
 
 # Load once at backend startup, not once per HTTP request.
-engine=Recommender(text_backend='tfidf')
+engine=Recommender(text_backend='minilm')
 
 def recommendation_handler(request_json):
     # Your existing endpoint deserializes JSON, then calls this function.

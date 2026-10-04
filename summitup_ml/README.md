@@ -18,7 +18,9 @@ The seasonal classifier learns relationships between trail attributes, month, pr
 
 The final rank combines learned seasonal scores with preference matching. Its weights are a transparent design choice, not learned from user relevance judgments. There is no trained pairwise/listwise ranking model yet. Default component weights are 0.6 seasonal, 0.3 text, and 0.1 verified feature match; unavailable components are omitted and remaining weights normalized. Condition weights are supplied separately in JSON.
 
-The executed text backend is TF-IDF fitted to catalog text. It learns vocabulary statistics but is lexical matching, not pretrained semantic understanding. Optional `sentence_transformer` uses all-MiniLM-L6-v2 for semantic preference matching. Optional BART-MNLI proposes review labels. Both pretrained paths are implemented but were NOT installed, downloaded, or run here. They require the optional dependencies, network access for initial model download, and populated original review text/curated descriptions. The current package is not evidence that the course's second model-type requirement has been completed.
+The app now executes bundled pretrained `sentence-transformers/all-MiniLM-L6-v2` via ONNX Runtime. Its unchanged pretrained weights and tokenizer run locally, without an API key or runtime download. Catalog embeddings are cached with a content/model fingerprint. Per-request saved-hike profiles average normalized vectors and add a default 0.4 ranking component; available components are normalized together. Catalog saves are excluded by default. Empty histories omit the personalization component. This changes the profile, not the pretrained network weights.
+
+Only verified descriptions/tags enter catalog embeddings; current catalog text is mostly route names. Similarity is affinity, not a probability. Behavioral tests pass, but ranking quality remains unvalidated. Optional BART review-label proposals remain separate and unexecuted. TF-IDF remains an explicit nonpersonalized CLI option; the backend loads MiniLM and does not silently fall back.
 
 ## Run on your Mac or in Colab
 
@@ -43,7 +45,7 @@ The notebook `train_and_integrate.ipynb` also runs training, shows metrics, and 
 
 ## Connect to your existing app
 
-Use `app_integration.py` as the pattern: instantiate `Recommender` once at server startup and pass the frontend's JSON into `engine.recommend(request_json)`. Catch `ValueError` and return HTTP 400 for invalid inputs. No frontend replacement is included or required.
+The existing backend routes load session saves server-side and map `catalog_hike_id` to `hike_id`. No new endpoint is needed. Frontend refresh and display work is described in `../docs/FRONTEND_PERSONALIZATION_HANDOFF.md`. For direct runtime calls, use `app_integration.py` as the pattern: instantiate `Recommender` once at server startup and pass the frontend's JSON into `engine.recommend(request_json)`. Catch `ValueError` and return HTTP 400 for invalid inputs. No frontend replacement is included or required.
 
 Inputs:
 

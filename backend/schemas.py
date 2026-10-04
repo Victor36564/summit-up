@@ -90,6 +90,9 @@ CONDITION_TARGETS = {"overall_good", "bugs", "mud", "snow", "ice", "scenic_posit
 
 
 class RecommendationRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    personalization_weight: float = Field(default=0.4, ge=0, allow_inf_nan=False)
+    exclude_saved: bool = True
     travel_date: date
     as_of: date = Field(default_factory=date.today)
     region: str | None = None
@@ -139,6 +142,9 @@ class ConditionResult(BaseModel):
 
 
 class RecommendationResult(BaseModel):
+    personalization_score: float | None = None
+    personalization_used: bool = False
+    similar_saved_hike: dict[str, str] | None = None
     hike_id: str
     name: str
     region: str
@@ -160,6 +166,7 @@ class RecommendationResult(BaseModel):
 
 
 class RecommendationResponse(BaseModel):
+    personalization: dict[str, Any] = Field(default_factory=dict)
     status: Literal["experimental", "limited_evidence"]
     travel_date: date
     as_of: date
@@ -171,6 +178,7 @@ class RecommendationResponse(BaseModel):
 
 
 class NoMatchResponse(BaseModel):
+    personalization: dict[str, Any] = Field(default_factory=dict)
     status: Literal["no_matches"]
     results: list[Any] = Field(default_factory=list)
     request: dict[str, Any]
