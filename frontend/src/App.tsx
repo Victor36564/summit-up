@@ -33,7 +33,7 @@ const fallbackTrails: Trail[] = [
   { place_id: "fallback-tongariro", name: "Tongariro Alpine Crossing", address: "Tongariro National Park, New Zealand", latitude: -39.13, longitude: 175.64, rating: 4.8, user_rating_count: 1842 },
   { place_id: "fallback-sealy", name: "Sealy Tarns Track", address: "Aoraki / Mount Cook National Park", latitude: -43.73, longitude: 170.1, rating: 4.7, user_rating_count: 622 },
 ];
-const fallbackVideo: Video = { video_id: "dQw4w9WgXcQ", title: "Aotearoa, one trail at a time", duration_sec: 32, dimensions: "1080x1920", tags: ["New Zealand", "hiking"], description: "Find your next summit in New Zealand.", url: "https://www.youtube.com/shorts/dQw4w9WgXcQ", hike_names: ["Tongariro Alpine Crossing"] };
+const fallbackVideo: Video = { video_id: "smFge_5Uaos", title: "Aotearoa, one trail at a time", duration_sec: 32, dimensions: "1080x1920", tags: ["New Zealand", "hiking"], description: "Find your next summit in New Zealand.", url: "https://www.youtube.com/shorts/smFge_5Uaos", hike_names: ["Tongariro Alpine Crossing"] };
 
 function App() {
   const location = useLocation();
