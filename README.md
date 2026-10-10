@@ -4,7 +4,7 @@
 
 [Watch the Summit Up demo](https://drive.google.com/file/d/14PBdnDVO469HIgljtlTpREd64ZxYUqkH/view?usp=sharing)
 
-Summit Up is a New Zealand-first hiking exploration app with a Shorts-style trail feed, an interactive map, and an anonymous saved-trail vault. Website: [text](https://summit-up-168547794625.us-central1.run.app)
+Summit Up is a New Zealand-first hiking exploration app with a Shorts-style trail feed, an interactive map, and an anonymous saved-trail vault. Website: <https://summit-up-168547794625.us-central1.run.app>
 
 ## Stack
 
