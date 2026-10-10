@@ -3,7 +3,7 @@ import { GoogleMap, LoadScript, MarkerF } from "@react-google-maps/api";
 import { Bookmark, ChevronDown, ChevronUp, CircleUserRound, Film, Info, Map as MapIcon, MapPin, MessageSquare, Search, Send, Share2, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "./api";
-import type { Details, Metrics, Personalization, RecommendationOptions, RecommendationRequest, RecommendationResponse, RecommendationResult, SavedTrail, Trail, Video } from "./types";
+import type { Details, Metrics, Personalization, RecommendationOptions, RecommendationRequest, RecommendationResponse, RecommendationResult, SavedTrail, Trail, Video, VideoComment } from "./types";
 
 function getSaveIdentity(trail?: Partial<SavedTrail> | null): string | null {
   if (trail && typeof trail.catalog_hike_id === "string" && trail.catalog_hike_id.trim()) return `catalog:${trail.catalog_hike_id}`;
@@ -38,7 +38,7 @@ const fallbackVideo: Video = { video_id: "smFge_5Uaos", title: "Aotearoa, one tr
 function App() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [query, setQuery] = useState("hikes in Auckland, New Zealand");
+  const [query, setQuery] = useState("hikes in New Zealand");
   const [trails, setTrails] = useState<Trail[]>(fallbackTrails);
   const [videos, setVideos] = useState<Video[]>([fallbackVideo]);
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
@@ -50,6 +50,10 @@ function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
+  const [commentsVideoId, setCommentsVideoId] = useState<string | null>(null);
+  const [comments, setComments] = useState<VideoComment[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentsError, setCommentsError] = useState("");
   const [recommendationOptions, setRecommendationOptions] = useState<RecommendationOptions>({ regions: [], difficulties: [] });
   const [recommendationResponse, setRecommendationResponse] = useState<RecommendationResponse | null>(null);
   const [recommendationLoading, setRecommendationLoading] = useState(false);
@@ -104,6 +108,25 @@ function App() {
       setNotice(error instanceof Error ? error.message : "Search providers are unavailable. Showing local examples.");
     } finally { setLoading(false); }
   }
+
+  async function openComments(video: Video) {
+    setCommentsVideoId(video.video_id);
+    setComments([]);
+    setCommentsError("");
+    setCommentsLoading(true);
+    try {
+      const response = await api.comments(video.video_id);
+      setComments(response.items);
+    } catch (error) {
+      setCommentsError(error instanceof Error ? error.message : "Comments are unavailable.");
+    } finally {
+      setCommentsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void search("hikes in New Zealand");
+  }, []);
 
   async function openTrail(trail: Trail | SavedTrail) {
     setSelectedTrail(trail);
@@ -223,23 +246,34 @@ function App() {
   }
 
   return <main className={`app-shell ${page}-page`}>
-    {page === "feed" && <FeedView video={videos[activeVideoIndex]} trail={resolvedVideoTrails[videos[activeVideoIndex]?.video_id] ?? trails[activeVideoIndex % trails.length] ?? trails[0]} activeIndex={activeVideoIndex} videoCount={videos.length} onStep={stepVideo} onWheel={handleReelWheel} onInfo={() => openVideoTrail(videos[activeVideoIndex], resolvedVideoTrails[videos[activeVideoIndex]?.video_id] ?? trails[activeVideoIndex % trails.length] ?? trails[0])} onSave={() => toggleSave(resolvedVideoTrails[videos[activeVideoIndex]?.video_id] ?? trails[activeVideoIndex % trails.length] ?? trails[0])} saved={saved.some((item) => item.place_id === (resolvedVideoTrails[videos[activeVideoIndex]?.video_id] ?? trails[activeVideoIndex % trails.length] ?? trails[0])?.place_id)} onSearch={search} query={query} setQuery={setQuery} loading={loading} notice={notice} />}
+    {page === "feed" && <FeedView video={videos[activeVideoIndex]} trail={resolvedVideoTrails[videos[activeVideoIndex]?.video_id] ?? trails[activeVideoIndex % trails.length] ?? trails[0]} activeIndex={activeVideoIndex} videoCount={videos.length} onStep={stepVideo} onWheel={handleReelWheel} onInfo={() => openVideoTrail(videos[activeVideoIndex], resolvedVideoTrails[videos[activeVideoIndex]?.video_id] ?? trails[activeVideoIndex % trails.length] ?? trails[0])} onSave={() => toggleSave(resolvedVideoTrails[videos[activeVideoIndex]?.video_id] ?? trails[activeVideoIndex % trails.length] ?? trails[0])} onComments={() => openComments(videos[activeVideoIndex])} saved={saved.some((item) => item.place_id === (resolvedVideoTrails[videos[activeVideoIndex]?.video_id] ?? trails[activeVideoIndex % trails.length] ?? trails[0])?.place_id)} onSearch={search} query={query} setQuery={setQuery} loading={loading} notice={notice} />}
     <div className={`map-view-shell ${page === "map" ? "is-active" : "is-hidden"}`}><MapView trails={trails} query={query} setQuery={setQuery} loading={loading} notice={notice} onSearch={search} onSelect={openTrail} recommendationOptions={recommendationOptions} recommendationResponse={recommendationResponse} recommendationLoading={recommendationLoading} recommendationError={recommendationError} onRecommend={recommendTrails} onOpenRecommendation={openRecommendation} onSaveRecommendation={saveRecommendation} /></div>
     {page === "profile" && <ProfileView saved={saved} onSelect={openTrail} onRemove={async (nextTrail) => { try { const result = await api.toggleSaved(nextTrail, false); setSaved((current) => current.filter((item) => !hasSameSaveIdentity(item, nextTrail))); if (lastRecommendationRequestRef.current) { await recommendTrails(lastRecommendationRequestRef.current); } if (result.saved === false) { setNotice(`${nextTrail.name} was removed from your vault.`); } } catch { setNotice("Removing this saved trail is unavailable right now."); } }} />}
+    {commentsVideoId && <CommentsPanel video={videos.find((item) => item.video_id === commentsVideoId) ?? videos[activeVideoIndex]} comments={comments} loading={commentsLoading} error={commentsError} onClose={() => setCommentsVideoId(null)} />}
     <BottomNav page={page} navigate={navigate} />
     {drawerOpen && selectedTrail && <InfoDrawer trail={selectedTrail} details={details} metrics={metrics} saved={saved.some((item) => hasSameSaveIdentity(item, selectedTrail))} onClose={() => setDrawerOpen(false)} onSave={() => toggleSave(selectedTrail)} />}
   </main>;
 }
 
-function FeedView({ video, trail, activeIndex, videoCount, onStep, onWheel, onInfo, onSave, saved, onSearch, query, setQuery, loading, notice }: { video: Video; trail: Trail; activeIndex: number; videoCount: number; onStep: (direction: number) => void; onWheel: (event: WheelEvent<HTMLElement>) => void; onInfo: () => void; onSave: () => void; saved: boolean; onSearch: () => void; query: string; setQuery: (value: string) => void; loading: boolean; notice: string }) {
+function FeedView({ video, trail, activeIndex, videoCount, onStep, onWheel, onInfo, onSave, onComments, saved, onSearch, query, setQuery, loading, notice }: { video: Video; trail: Trail; activeIndex: number; videoCount: number; onStep: (direction: number) => void; onWheel: (event: WheelEvent<HTMLElement>) => void; onInfo: () => void; onSave: () => void; onComments: () => void; saved: boolean; onSearch: () => void; query: string; setQuery: (value: string) => void; loading: boolean; notice: string }) {
   return <section className="feed-stage" onWheel={onWheel}>
     <header className="shorts-header"><div className="shorts-brand"><span className="shorts-brand-mark"><Film size={18} /></span><strong>Summit Up</strong><small>SHORTS</small></div><div className="map-search reels-search"><Search size={18} /><input aria-label="Search hikes and shorts" placeholder="Search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSearch()} /><button onClick={() => onSearch()}>{loading ? "Searching..." : "SEARCH"}</button></div></header>
     <div className="shorts-heading"><span className="eyebrow">SHORTS / TRAIL FEED</span><h1>Watch the wild.</h1><p>Vertical field notes for your next high point.</p></div>
     <div className="reel-frame"><iframe className="reel-video" src={`https://www.youtube.com/embed/${video.video_id}?autoplay=1&playsinline=1&rel=0&modestbranding=1`} title={video.title} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen /><div className="reel-image" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1464278533981-50106e6176b1?auto=format&fit=crop&w=900&q=85)" }} /><div className="reel-shade" /><div className="reel-copy"><h2>{trail.name}</h2><p>{trail.address}</p></div><div className="video-mark"><span>WATCH</span><strong>SHORT</strong></div></div>
-    <div className="action-rail"><ActionButton icon={<Info />} label="Trail info" onClick={onInfo} /><ActionButton icon={<Bookmark fill={saved ? "currentColor" : "none"} />} label={saved ? "Saved" : "Save trail"} onClick={onSave} active={saved} /><ActionButton icon={<MessageSquare />} label="Reviews" onClick={onInfo} /><ActionButton icon={<Share2 />} label="Share" onClick={() => navigator.clipboard?.writeText(video.url)} /></div>
+    <div className="action-rail"><ActionButton icon={<Info />} label="Trail info" onClick={onInfo} /><ActionButton icon={<Bookmark fill={saved ? "currentColor" : "none"} />} label={saved ? "Saved" : "Save trail"} onClick={onSave} active={saved} /><ActionButton icon={<MessageSquare />} label="Comments" onClick={onComments} /><ActionButton icon={<Share2 />} label="Share" onClick={() => navigator.clipboard?.writeText(video.url)} /></div>
     {notice && <div className="toast">{notice}</div>}
     <div className="reel-controls"><button aria-label="Previous short" onClick={() => onStep(-1)}><ChevronUp /></button><span>{String(activeIndex + 1).padStart(2, "0")} / {String(videoCount).padStart(2, "0")}</span><button aria-label="Next short" onClick={() => onStep(1)}><ChevronDown /></button></div>
   </section>;
+}
+
+function CommentsPanel({ video, comments, loading, error, onClose }: { video?: Video; comments: VideoComment[]; loading: boolean; error: string; onClose: () => void }) {
+  return <aside className="comments-panel" aria-label="YouTube comments">
+    <div className="comments-panel-header"><div><span className="eyebrow">YOUTUBE COMMENTS</span><h2>{video?.title ?? "Comments"}</h2></div><button className="comments-close" onClick={onClose} aria-label="Close comments"><X /></button></div>
+    {loading && <p className="comments-message">Loading comments...</p>}
+    {!loading && error && <p className="comments-error">{error}</p>}
+    {!loading && !error && !comments.length && <p className="comments-message">This Short has no comments yet.</p>}
+    {!loading && !error && comments.length > 0 && <div className="comments-list">{comments.map((comment, index) => <article className="comment-item" key={`${comment.author}-${comment.published_at ?? index}`}><strong>{comment.author}</strong><p>{comment.text}</p><small>{comment.like_count} {comment.like_count === 1 ? "like" : "likes"}</small></article>)}</div>}
+  </aside>;
 }
 
 function ActionButton({ icon, label, onClick, active = false }: { icon: ReactNode; label: string; onClick: () => void; active?: boolean }) { return <button className={`action-button ${active ? "is-active" : ""}`} onClick={onClick} aria-label={label}>{icon}</button>; }
@@ -315,7 +349,7 @@ function RecommendationPanel({ options, response, loading, error, onSubmit, onOp
   })();
   return <aside className="recommendation-panel"><div className="recommendation-panel-head"><div><span className="eyebrow">EXPERIMENTAL SEASONAL RECOMMENDATIONS</span><h2>Plan a better day out.</h2></div><span className="recommendation-note">Reviewer-condition scores, not safety guarantees.</span></div><div className="recommendation-controls"><label>Date<input type="date" value={travelDate} onChange={(event) => setTravelDate(event.target.value)} /></label><label>Region<select value={region} onChange={(event) => setRegion(event.target.value)}><option value="">All regions</option>{options.regions.map((item) => <option key={item}>{item}</option>)}</select></label><label>Difficulty<select value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="">Any difficulty</option>{options.difficulties.map((item) => <option key={item}>{item}</option>)}</select></label><label>Max km<input type="number" min="0" value={distance} onChange={(event) => setDistance(event.target.value)} /></label><label>Max hours<input type="number" min="0" value={time} onChange={(event) => setTime(event.target.value)} /></label><label>Max elevation<input type="number" min="0" value={elevation} onChange={(event) => setElevation(event.target.value)} /></label><label className="recommendation-preferences">Preferences<input placeholder="mountain views, quiet lake" value={preferences} onChange={(event) => setPreferences(event.target.value)} /></label><div className="recommendation-options"><span>Features</span>{["views", "lake", "forest", "waterfall", "coastal"].map((feature) => <label key={feature}><input type="checkbox" checked={features.includes(feature)} onChange={(event) => setFeatures((current) => event.target.checked ? [...current, feature] : current.filter((item) => item !== feature))} />{feature}</label>)}</div><div className="recommendation-options"><span>Condition weight</span>{Object.keys(conditionWeights).map((key) => <label key={key}>{key}<input type="number" min="0" step="0.1" value={conditionWeights[key as keyof typeof conditionWeights]} onChange={(event) => setConditionWeights((current) => ({ ...current, [key]: event.target.value }))} /></label>)}</div><button className="recommendation-submit" onClick={submit} disabled={loading}>{loading ? "Loading..." : "Recommend"}</button></div>{personalizationSummary && <p className="recommendation-status">{personalizationSummary}</p>}{error && <p className="recommendation-error">{error}</p>}{response?.status === "no_matches" && <p className="recommendation-empty">No hikes match those filters.</p>}{results.length > 0 && <div className="recommendation-results">{results.map((result) => {
     const similarityText = result.personalization_used && result.personalization_score != null && result.similar_saved_hike ? `Similar to your saved hike “${result.similar_saved_hike.name}” (affinity ${result.personalization_score.toFixed(2)}).` : result.personalization_used ? "Personalized using your saved hikes." : "";
-    return <article className="recommendation-card" key={result.hike_id}><div><span className="recommendation-rank">#{result.rank ?? "-"}</span><h3>{result.name}</h3><p>{result.region} · {result.difficulty ?? "Difficulty unavailable"}</p><p>{result.distance_km ?? "-"} km · {result.elevation_gain_m ?? "-"} m gain · {result.estimated_time_hours ?? "Time unavailable"}</p></div><div className="recommendation-card-actions"><span>{result.ranking_score == null ? "Unranked" : `Score ${result.ranking_score.toFixed(2)}`}</span><button onClick={() => onOpen(result)}>View details</button><button onClick={() => onSave(result)}>Save</button>{result.source_url && <a href={result.source_url} target="_blank" rel="noreferrer">Source</a>}</div>{similarityText && <p className="recommendation-similarity">{similarityText}</p>}<p className="recommendation-reasons">{result.reasons.join(" ") || "Catalog match; model evidence is limited."}</p></article>;
+    return <article className="recommendation-card" key={result.hike_id}><div><span className="recommendation-rank">#{result.rank ?? "-"}</span><h3>{result.name}</h3><p>{result.region} · {result.difficulty ?? "Difficulty unavailable"}</p><p>{result.distance_km ?? "-"} km · {result.elevation_gain_m ?? "-"} m gain · {result.estimated_time_hours ?? "Time unavailable"}</p></div><div className="recommendation-card-actions"><span>{result.ranking_score == null ? "Unranked" : `Score ${result.ranking_score.toFixed(2)}`}</span><button onClick={() => onOpen(result)}>View details</button><button onClick={() => onSave(result)}>Save</button>{result.source_url && <a href={result.source_url} target="_blank" rel="noreferrer">Source</a>}</div>{similarityText && <p className="recommendation-similarity">{similarityText}</p>}</article>;
   })}</div>}</aside>;
 }
 
