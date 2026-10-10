@@ -9,6 +9,7 @@ from schemas import VideoResult
 
 SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
 VIDEOS_URL = "https://www.googleapis.com/youtube/v3/videos"
+COMMENTS_URL = "https://www.googleapis.com/youtube/v3/commentThreads"
 
 
 def parse_iso8601_duration(duration: str) -> float:
@@ -142,3 +143,38 @@ def search_shorts(settings: Settings, query: str, limit: int) -> list[VideoResul
         if not next_page_token:
             break
     return cache.set(key, found[:limit], settings.cache_ttl_seconds)
+
+
+def get_video_comments(settings: Settings, video_id: str, limit: int = 20) -> list[dict[str, Any]]:
+    if not settings.youtube_api_key:
+        raise RuntimeError("YOUTUBE_API_KEY is not configured")
+    key = f"youtube:comments:v1:{video_id}:{limit}"
+    cached = cache.get(key)
+    if cached is not None:
+        return cached
+
+    response = _get_json(
+        COMMENTS_URL,
+        {
+            "part": "snippet",
+            "key": settings.youtube_api_key,
+            "videoId": video_id,
+            "maxResults": limit,
+            "order": "relevance",
+            "textFormat": "plainText",
+        },
+    )
+    comments: list[dict[str, Any]] = []
+    for item in response.get("items", []):
+        snippet = item.get("snippet", {}).get("topLevelComment", {}).get("snippet", {})
+        if not snippet:
+            continue
+        comments.append(
+            {
+                "author": snippet.get("authorDisplayName", "Anonymous"),
+                "text": snippet.get("textDisplay", ""),
+                "like_count": int(snippet.get("likeCount", 0) or 0),
+                "published_at": snippet.get("publishedAt"),
+            }
+        )
+    return cache.set(key, comments, settings.cache_ttl_seconds)

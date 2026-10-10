@@ -2,7 +2,7 @@ import json
 import re
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Path, Query, Request
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
@@ -12,7 +12,7 @@ from models.model import catalog_options, catalog_options_from_csv, load_recomme
 from schemas import NoMatchResponse, RecommendationRequest, RecommendationResponse, SaveToggleRequest, SaveToggleResponse, SavedTrail
 from services.alltrails import get_metrics
 from services.google_places import get_place_details, search_places
-from services.youtube import search_shorts
+from services.youtube import get_video_comments, search_shorts
 
 router = APIRouter(prefix="/api")
 
@@ -100,6 +100,20 @@ def feed_shorts(
         raise HTTPException(status_code=503, detail=str(error)) from error
     except Exception as error:
         raise HTTPException(status_code=502, detail="YouTube request failed") from error
+
+
+@router.get("/feed/shorts/{video_id}/comments")
+def feed_short_comments(
+    video_id: Annotated[str, Path(pattern=r"^[A-Za-z0-9_-]{6,20}$")],
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+    settings: Settings = Depends(settings_dependency),
+):
+    try:
+        return {"items": get_video_comments(settings, video_id, limit)}
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    except Exception as error:
+        raise HTTPException(status_code=502, detail="YouTube comments request failed") from error
 
 
 @router.get("/trails/search")

@@ -1,6 +1,10 @@
 # Summit Up
 
-Summit Up is a New Zealand-first hiking exploration app with a Shorts-style trail feed, an interactive map, and an anonymous saved-trail vault.
+## Demo video
+
+[Watch the Summit Up demo](https://drive.google.com/file/d/14PBdnDVO469HIgljtlTpREd64ZxYUqkH/view?usp=sharing)
+
+Summit Up is a New Zealand-first hiking exploration app with a Shorts-style trail feed, an interactive map, and an anonymous saved-trail vault. Website: [text](https://summit-up-168547794625.us-central1.run.app)
 
 ## Stack
 
@@ -71,7 +75,7 @@ Example request body for `POST /api/recommendations`:
 
 The ML artifacts require `scikit-learn==1.8.0`; install `backend\requirements.txt` before starting FastAPI. The recommender loads once during startup. If its assets or dependencies are unavailable, provider-only routes remain available and recommendation requests return `503`.
 
-## Docker / Hugging Face Spaces
+## Docker
 
 Build and run the unified image from the repository root:
 
@@ -81,19 +85,3 @@ docker run --env-file .env -p 7860:7860 summit-up
 ```
 
 The image builds the Vite app, copies it into the Python runtime, runs as UID 1000, and serves both the SPA and `/api/*` on port `7860`.
-
-## Testing
-
-The scripts under `test/` are provider experiments and references for the production services under `backend/services/`. Unit and mocked API tests should run without credentials. Live provider smoke tests should be opt-in because Google, YouTube, and Apify usage may incur quota or scraping costs.
-Personalization reads saved hikes server-side through the existing X-Session-ID. Catalog saves are excluded by default; empty histories use cold-start ranking. Each new recommendation request reads current saves; frontend refresh after saves/removals is a separate integration task. Similarity is an affinity score, not a probability; ranking quality remains unvalidated. MiniLM assets run offline after dependencies are installed.
-
-
-Backend and ML regression checks (run from the repository root):
-
-```bash
-python -m pip install -r backend/requirements-dev.txt
-(cd backend && ../.venv/bin/python -m unittest test_recommendations test_personalization_integration -v)
-(cd summitup_ml && ../.venv/bin/python -m unittest test_personalization test_contract -v)
-```
-
-The command examples assume the local `.venv` setup. Integration tests use an isolated in-memory database and actual bundled MiniLM inference, without provider calls. The frontend is unchanged; see [the frontend integration handoff](docs/FRONTEND_PERSONALIZATION_HANDOFF.md).

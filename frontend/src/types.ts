@@ -19,6 +19,7 @@ export type Video = {
   url: string;
   hike_names: string[];
 };
+export type VideoComment = { author: string; text: string; like_count: number; published_at?: string | null };
 
 export type Metrics = {
   name: string;
